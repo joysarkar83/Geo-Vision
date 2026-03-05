@@ -169,12 +169,12 @@ function AddLand() {
           <TextField
             label="Status"
             type="number"
-            placeholder="Status (100 or 101)"
+            placeholder="Status (10: On Sale | 11: Not for Sale)"
             value={form.status}
             onChange={(e) =>
               setForm({ ...form, status: Number(e.target.value) })
             }
-            caption="Use 100 or 101"
+            caption="Use 10 or 11"
           />
         </div>
 

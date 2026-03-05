@@ -1,8 +1,9 @@
 import { model, Schema } from 'mongoose';
 
-// 100: On Sale
-// 101: Not for sale
-// 102: Pending verification
+// 10: On Sale
+// 11: Not for sale
+// 0: Pending verification
+// 1: Verified
 
 const landSchema = new Schema({
     ownerName: String,
@@ -36,9 +37,13 @@ const landSchema = new Schema({
     documents: [String],
     driveFolder: String,
     propertyValue: Number,
-    status: {
+    sellingStatus: {
         type: Number,
-        default: 102
+        default: 11
+    },
+    verificationStatus: {
+        type: Number,
+        default: 0
     }
 });
 

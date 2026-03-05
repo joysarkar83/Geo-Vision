@@ -40,7 +40,7 @@ function authenticateToken(req, res, next) {
 // Routes
 app.get("/land", async (req, res) => {
     try {
-        const lands = await Land.find({ $or: [{ status: 100 }, { status: 101 }] });
+        const lands = await Land.find({verificationStatus: 1});
         res.json(lands);
     } catch (err) {
         res.status(500).json({ error: err.message });
