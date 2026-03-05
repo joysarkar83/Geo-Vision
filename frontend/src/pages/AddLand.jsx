@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { addLand } from "../api/api";
 import Layout from "../components/Layout";
 import TextField from "../components/ui/TextField";
 import PrimaryButton from "../components/ui/PrimaryButton";
+import { isLoggedIn } from "../utils/auth";
 
 function AddLand() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     ownerName: "",
     fatherName: "",
@@ -20,6 +23,12 @@ function AddLand() {
     propertyValue: "",
     status: "",
   });
+
+  useEffect(() => {
+    if (!isLoggedIn()) {
+      navigate("/login");
+    }
+  }, [navigate]);
 
   const handleSubmit = async () => {
     const payload = {
