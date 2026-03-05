@@ -1,7 +1,10 @@
 import { NavLink, useLocation } from "react-router-dom";
+import { isLoggedIn, getUserEmail, logout } from "../utils/auth";
 
 function Navbar() {
   const location = useLocation();
+  const loggedIn = isLoggedIn();
+  const userEmail = loggedIn ? getUserEmail() : null;
 
   const isActive = (path) =>
     location.pathname === path ||
@@ -39,16 +42,31 @@ function Navbar() {
       </nav>
 
       <div className="navbar-actions">
-        <NavLink to="/login">
-          <button className="btn-ghost" type="button">
-            Login
-          </button>
-        </NavLink>
-        <NavLink to="/signup">
-          <button className="btn-primary" type="button">
-            Signup
-          </button>
-        </NavLink>
+        {!loggedIn && (
+          <>
+            <NavLink to="/login">
+              <button className="btn-ghost" type="button">
+                Login
+              </button>
+            </NavLink>
+            <NavLink to="/signup">
+              <button className="btn-primary" type="button">
+                Signup
+              </button>
+            </NavLink>
+          </>
+        )}
+
+        {loggedIn && (
+          <>
+            <div className="pill">
+              {userEmail || "Authenticated user"}
+            </div>
+            <button className="btn-ghost" type="button" onClick={logout}>
+              Logout
+            </button>
+          </>
+        )}
       </div>
     </header>
   );

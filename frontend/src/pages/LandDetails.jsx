@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getLand } from "../api/api";
 import Layout from "../components/Layout";
+import { isLoggedIn } from "../utils/auth";
 
 function LandDetails() {
   const { id } = useParams();
@@ -11,6 +12,8 @@ function LandDetails() {
   useEffect(() => {
     getLand(id).then((data) => setLand(data));
   }, [id]);
+
+  const loggedIn = isLoggedIn();
 
   if (!land) {
     return (
@@ -37,7 +40,7 @@ function LandDetails() {
               <p className="section-eyebrow">Land record</p>
               <h1 className="card-title">Land details</h1>
               <p className="card-subtitle">
-                Owner and valuation summary for the selected parcel.
+                Owner and parcel summary for the selected record.
               </p>
             </div>
           </div>
@@ -49,7 +52,24 @@ function LandDetails() {
             <div className="details-chip-row">
               <span className="pill">Father: {land.fatherName}</span>
               <span className="pill">Area: {land.landArea}</span>
-              <span className="pill">Value: {land.propertyValue}</span>
+              {loggedIn && (
+                <span className="pill">Value: {land.propertyValue}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="details-metadata" style={{ marginTop: 16 }}>
+            <div className="details-item">
+              <p className="details-label">Coordinates</p>
+              <p className="details-value">
+                {Array.isArray(land.coordinates)
+                  ? land.coordinates.join(", ")
+                  : land.coordinates}
+              </p>
+            </div>
+            <div className="details-item">
+              <p className="details-label">Status</p>
+              <p className="details-value">{land.status}</p>
             </div>
           </div>
         </div>
@@ -58,9 +78,9 @@ function LandDetails() {
           <div className="card-header">
             <div>
               <p className="section-eyebrow">Registered address</p>
-              <h2 className="card-title">Location</h2>
+              <h2 className="card-title">Location & contact</h2>
               <p className="card-subtitle">
-                Address information as returned from the registry backend.
+                Address information from the registry backend.
               </p>
             </div>
           </div>
@@ -70,6 +90,19 @@ function LandDetails() {
               <p className="details-label">Address</p>
               <p className="details-value">{land.address}</p>
             </div>
+
+            {loggedIn && (
+              <>
+                <div className="details-item">
+                  <p className="details-label">Phone</p>
+                  <p className="details-value">{land.phone}</p>
+                </div>
+                <div className="details-item">
+                  <p className="details-label">Email</p>
+                  <p className="details-value">{land.email}</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -78,3 +111,4 @@ function LandDetails() {
 }
 
 export default LandDetails;
+
