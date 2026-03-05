@@ -3,9 +3,12 @@ import mongoose from 'mongoose';
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import multer from "multer";
+import cors from "cors";
+
 import { createFolder, uploadFile } from "./config/googleDrive.js";
 
 const app = express();
+app.use(cors());
 const PORT = process.env.PORT || 3000;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
