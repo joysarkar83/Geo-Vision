@@ -16,11 +16,11 @@ const landSchema = new Schema({
         unique: true
     },
     pan: {
-        type: Number,
+        type: String,
         unique: true
     },
     regNum: {
-        type: Number,
+        type: String,
         unique: true
     },
     phone: {

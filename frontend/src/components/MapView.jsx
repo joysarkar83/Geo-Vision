@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Polygon, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polygon, useMap, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import axios from "axios";
 import * as turf from "@turf/turf";
@@ -141,7 +141,15 @@ export default function MapView({ targetLocation }) {
                 console.log("Land clicked:", land);
               }
             }}
-          />
+          >
+            <Popup>
+              <div>
+                <strong>Owner:</strong> {land.ownerName}<br/>
+                <strong>Father:</strong> {land.fatherName}<br/>
+                <strong>Status:</strong> {land.sellingStatus === 10 ? "On Sale" : "Not for Sale"}
+              </div>
+            </Popup>
+          </Polygon>
         );
 
       })}

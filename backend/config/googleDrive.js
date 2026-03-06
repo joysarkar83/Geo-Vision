@@ -11,22 +11,26 @@ const drive = google.drive({
     auth
 });
 
+const ROOT_FOLDER = "1HKW0fjKdcHpepYcfawdor8KqPwUdxqKw";
 
-// CREATE FOLDER
-export async function createFolder(folderName) {
+export async function createSubmissionFolder() {
 
-    const response = await drive.files.create({
+    const folderName = `Land_${Date.now()}`;
+
+    const folder = await drive.files.create({
         requestBody: {
-            name: folderName,
-            mimeType: "application/vnd.google-apps.folder"
+            name: file.originalname,
+            parents: [ROOT_FOLDER]
+        },
+        media: {
+            mimeType: file.mimetype,
+            body: fs.createReadStream(file.path)
         }
     });
 
-    return response.data.id;
+    return folder.data.id;
 }
 
-
-// UPLOAD FILE INTO FOLDER
 export async function uploadFile(file, folderId) {
 
     const response = await drive.files.create({

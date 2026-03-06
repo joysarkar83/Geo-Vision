@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { addLand } from "../api/api";
+import { addLand, uploadDocs } from "../api/api";
 import Layout from "../components/Layout";
 import TextField from "../components/ui/TextField";
 import PrimaryButton from "../components/ui/PrimaryButton";
@@ -22,6 +22,7 @@ function AddLand() {
     coordinates: "",
     propertyValue: "",
     status: "",
+    files: [],
   });
 
   useEffect(() => {
@@ -31,9 +32,24 @@ function AddLand() {
   }, [navigate]);
 
   const handleSubmit = async () => {
+    let folderId = null;
+    let uploadedFiles = [];
+
+    if (form.files.length > 0) {
+      const uploadResult = await uploadDocs(form.files);
+      if (uploadResult.error) {
+        alert("File upload failed: " + uploadResult.error);
+        return;
+      }
+      folderId = uploadResult.folderId;
+      uploadedFiles = uploadResult.files;
+    }
+
     const payload = {
       ...form,
-      coordinates: form.coordinates.split(",").map(Number),
+      coordinates: form.coordinates.split(";").map(point => point.split(",").map(Number)),
+      driveFolder: folderId,
+      documents: uploadedFiles,
     };
 
     const result = await addLand(payload);
@@ -93,9 +109,9 @@ function AddLand() {
           />
 
           <TextField
-            label="Land area"
+            label="Land area (Acres)"
             type="number"
-            placeholder="Land Area"
+            placeholder="Land Area (Acres)"
             value={form.landArea}
             onChange={(e) =>
               setForm({ ...form, landArea: Number(e.target.value) })
@@ -114,21 +130,19 @@ function AddLand() {
 
           <TextField
             label="PAN"
-            type="number"
             placeholder="PAN"
             value={form.pan}
             onChange={(e) =>
-              setForm({ ...form, pan: Number(e.target.value) })
+              setForm({ ...form, pan: e.target.value })
             }
           />
 
           <TextField
             label="Registration number"
-            type="number"
             placeholder="Registration Number"
             value={form.regNum}
             onChange={(e) =>
-              setForm({ ...form, regNum: Number(e.target.value) })
+              setForm({ ...form, regNum: e.target.value })
             }
           />
 
@@ -153,19 +167,9 @@ function AddLand() {
           />
 
           <TextField
-            label="Coordinates"
-            placeholder="Coordinates (example: 72.99,19.07)"
-            value={form.coordinates}
-            onChange={(e) =>
-              setForm({ ...form, coordinates: e.target.value })
-            }
-            caption="Comma‑separated latitude and longitude"
-          />
-
-          <TextField
-            label="Property value"
+            label="Property value (Lakhs)"
             type="number"
-            placeholder="Property Value"
+            placeholder="Property Value (Lakhs)"
             value={form.propertyValue}
             onChange={(e) =>
               setForm({
@@ -175,16 +179,56 @@ function AddLand() {
             }
           />
 
-          <TextField
-            label="Status"
-            type="number"
-            placeholder="Status (10: On Sale | 11: Not for Sale)"
-            value={form.status}
-            onChange={(e) =>
-              setForm({ ...form, status: Number(e.target.value) })
-            }
-            caption="Use 10 or 11"
+          <div className="field">
+            <label className="field-label">Status</label>
+            <div className="radio-group">
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="status"
+                  value={10}
+                  checked={form.status === 10}
+                  onChange={(e) =>
+                    setForm({ ...form, status: Number(e.target.value) })
+                  }
+                />
+                <span>On Sale</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="status"
+                  value={11}
+                  checked={form.status === 11}
+                  onChange={(e) =>
+                    setForm({ ...form, status: Number(e.target.value) })
+                  }
+                />
+                <span>Not for Sale</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <TextField
+          label="Coordinates"
+          placeholder="Coordinates (example: 72.99,19.07;73.00,19.08)"
+          value={form.coordinates}
+          onChange={(e) =>
+            setForm({ ...form, coordinates: e.target.value })
+          }
+          caption="Semicolon-separated points, each comma-separated longitude and latitude"
+        />
+
+        <div className="field">
+          <label className="field-label">Documents</label>
+          <input
+            type="file"
+            multiple
+            className="field-input"
+            onChange={(e) => setForm({ ...form, files: Array.from(e.target.files) })}
           />
+          <p className="field-caption">Upload supporting documents (PDF, images, etc.)</p>
         </div>
 
         <div className="form-footer">
@@ -192,8 +236,7 @@ function AddLand() {
             Submit
           </PrimaryButton>
           <span className="form-meta">
-            Coordinates are sent exactly as provided, split into numeric
-            values.
+            Coordinates are parsed as semicolon-separated points into an array of [longitude, latitude] pairs.
           </span>
         </div>
       </section>

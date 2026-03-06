@@ -4,8 +4,9 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import multer from "multer";
 import cors from "cors";
+import fs from "fs";
 
-import { createFolder, uploadFile } from "./config/googleDrive.js";
+import { createSubmissionFolder, uploadFile } from "./config/googleDrive.js";
 
 const app = express();
 app.use(cors());
@@ -121,31 +122,43 @@ app.post("/land/add", authenticateToken, async (req, res) => {
 });
 
 app.post(
-    "/land/upload-docs",
-    authenticateToken,
-    upload.array("documents"),
-    async (req, res) => {
-        try {
-            const folderName = `Land_${Date.now()}`;
-            const folderId = await createFolder(folderName);
-            const fileIds = [];
-            for (const file of req.files) {
-                const fileId = await uploadFile(file, folderId);
-                fileIds.push(fileId);
-                fs.unlinkSync(file.path);
-            }
+  "/land/upload-docs",
+  authenticateToken,
+  upload.array("documents"),
+  async (req, res) => {
 
-            res.json({
-                message: "Documents uploaded successfully",
-                folderId,
-                files: fileIds
-            });
-        } catch (err) {
-            res.status(500).json({
-                error: err.message
-            });
-        }
-    });
+    try {
+
+      const folderId = await createSubmissionFolder();
+
+      const fileIds = [];
+
+      for (const file of req.files) {
+
+        const fileId = await uploadFile(file, folderId);
+
+        fileIds.push(fileId);
+
+        fs.unlinkSync(file.path); // delete temp file
+
+      }
+
+      res.json({
+        folderId,
+        files: fileIds
+      });
+
+    } catch (err) {
+
+      console.error(err);
+
+      res.status(500).json({
+        error: err.message
+      });
+
+    }
+
+});
 
 app.use((req, res) => {
     res.status(404).json({
