@@ -39,19 +39,17 @@ export default function SearchBar({ onLocationFound }) {
   };
 
   return (
-    <div style={{ display: "flex", gap: "8px" }}>
-
+    <div className="search-bar">
       <input
+        className="search-input"
         type="text"
         placeholder="Search region..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
-
-      <button onClick={searchLocation}>
+      <button className="search-button" type="button" onClick={searchLocation}>
         Search
       </button>
-
     </div>
   );
 }

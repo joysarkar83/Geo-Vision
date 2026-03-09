@@ -32,18 +32,10 @@ function RecenterButton({ position }) {
   return (
     <button
       onClick={() => map.setView(position, 18)}
-      style={{
-        position: "absolute",
-        top: "10px",
-        right: "10px",
-        zIndex: 1000,
-        padding: "8px 12px",
-        background: "white",
-        border: "1px solid #ccc",
-        cursor: "pointer"
-      }}
+      className="map-recenter-button"
     >
-      My Location
+      <span>📍</span>
+      <span>Recenter</span>
     </button>
   );
 }

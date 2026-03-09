@@ -25,14 +25,11 @@ function Dashboard() {
           <div className="card-header">
             <div>
               <p className="section-eyebrow">Spatial overview</p>
-
-              <div>
+              <div className="map-header">
                 <h2 className="card-title">Land parcel map</h2>
-
                 {/* Search bar */}
                 <SearchBar onLocationFound={setTargetLocation} />
               </div>
-
               <p className="card-subtitle">
                 A large, dedicated canvas reserved for the interactive map
                 integration.
@@ -74,19 +71,23 @@ function Dashboard() {
                 <li key={land._id}>
                   <Link to={`/land/${land._id}`}>
                     <div className="parcel-item">
-
                       <div className="parcel-meta">
                         <span className="parcel-owner">
                           {land.ownerName}
                         </span>
-
                         <span className="parcel-caption">
-                          Owner • Tap to view details
+                          Area: {land.landArea}
+                        </span>
+                        <span className="parcel-caption">
+                          Status:{" "}
+                          {land.status === 10
+                            ? "On Sale"
+                            : land.status === 11
+                            ? "Not for Sale"
+                            : land.status}
                         </span>
                       </div>
-
                       <span className="pill">View details</span>
-
                     </div>
                   </Link>
                 </li>

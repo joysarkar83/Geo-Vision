@@ -55,6 +55,7 @@ body {
 .app-shell {
   position: relative;
   z-index: 1;
+  width: 80vw;
   max-width: 1120px;
   margin: 0 auto;
   padding: 24px 20px 40px;
@@ -163,11 +164,27 @@ body {
   gap: 8px;
 }
 
+/* Shared button base */
+.btn-primary,
+.btn-ghost,
+.search-button,
+.map-recenter-button {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
 /* Buttons & cards */
 
 .btn-primary {
   padding: 10px 18px;
-  border-radius: 999px;
   border: none;
   background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-soft));
   color: #0a0a0a;
@@ -178,7 +195,6 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  cursor: pointer;
   box-shadow: 0 0 0 rgba(201, 169, 110, 0.0);
   transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
 }
@@ -201,14 +217,9 @@ body {
 
 .btn-ghost {
   padding: 8px 14px;
-  border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.02);
   color: var(--text-secondary);
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
   transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
 }
 
@@ -362,14 +373,21 @@ body {
 
 .dashboard-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
   gap: 18px;
+  min-height: calc(100vh - 120px);
 }
 
 .map-shell {
-  height: 420px;
   display: flex;
   flex-direction: column;
+}
+
+.map-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .map-placeholder {
@@ -378,10 +396,11 @@ body {
   border: 1px dashed rgba(255, 255, 255, 0.16);
   background: radial-gradient(circle at top left, #121212, #050505);
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   color: var(--text-muted);
   font-size: 13px;
+  overflow: hidden;
 }
 
 .parcel-list {
@@ -391,6 +410,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
 }
 
 .parcel-item {
@@ -434,6 +455,67 @@ body {
   background: rgba(255, 255, 255, 0.02);
   font-size: 11px;
   color: var(--text-secondary);
+}
+
+/* Search bar */
+.search-bar {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  max-width: 420px;
+}
+
+.search-input {
+  flex: 1;
+  border-radius: 999px 0 0 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-right: none;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 11px 13px;
+  font-size: 14px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-input:focus {
+  border-color: rgba(201, 169, 110, 0.7);
+  background: rgba(201, 169, 110, 0.06);
+  box-shadow: 0 0 0 1px rgba(201, 169, 110, 0.4);
+}
+
+.search-button {
+  padding: 0 16px;
+  border-radius: 0 999px 999px 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: none;
+  background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-soft));
+  color: #0a0a0a;
+}
+
+.search-button:hover {
+  box-shadow: 0 8px 24px rgba(201, 169, 110, 0.3);
+}
+
+/* Map controls */
+.map-recenter-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--text-primary);
+  z-index: 1000;
+  gap: 6px;
+}
+
+.map-recenter-button:hover {
+  background: rgba(0, 0, 0, 0.82);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Auth pages */

@@ -119,6 +119,16 @@ function AddLand() {
           />
 
           <TextField
+            label="Coordinates"
+            placeholder="Coordinates (example: 72.99,19.07;73.00,19.08)"
+            value={form.coordinates}
+            onChange={(e) =>
+              setForm({ ...form, coordinates: e.target.value })
+            }
+            caption="Semicolon-separated points, each comma-separated longitude and latitude"
+          />
+
+          <TextField
             label="Aadhar"
             type="number"
             placeholder="Aadhar"
@@ -209,16 +219,6 @@ function AddLand() {
             </div>
           </div>
         </div>
-
-        <TextField
-          label="Coordinates"
-          placeholder="Coordinates (example: 72.99,19.07;73.00,19.08)"
-          value={form.coordinates}
-          onChange={(e) =>
-            setForm({ ...form, coordinates: e.target.value })
-          }
-          caption="Semicolon-separated points, each comma-separated longitude and latitude"
-        />
 
         <div className="field">
           <label className="field-label">Documents</label>

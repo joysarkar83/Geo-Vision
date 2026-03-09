@@ -32,75 +32,67 @@ function Login() {
   };
 
   return (
-    <div className="app-root">
-      <div className="bg-blob bg-blob-1" />
-      <div className="bg-blob bg-blob-2" />
+    <Layout>
+      <section className="auth-layout">
+        <div className="auth-hero">
+          <p className="auth-eyebrow">Secure land access</p>
+          <h1 className="auth-headline">
+            Sign in to your <em>Geo‑Vision</em> console.
+          </h1>
+          <p className="auth-copy">
+            Authenticate with your registered credentials to manage land
+            parcels, verify ownership and review spatial records.
+          </p>
+          <p className="auth-footer">
+            Trusted infrastructure for land parcel identification.
+          </p>
+        </div>
 
-      <div className="app-shell">
-        {/* Reuse navbar for brand coherence */}
-        <Layout>
-          <section className="auth-layout">
-            <div className="auth-hero">
-              <p className="auth-eyebrow">Secure land access</p>
-              <h1 className="auth-headline">
-                Sign in to your <em>Geo‑Vision</em> console.
-              </h1>
-              <p className="auth-copy">
-                Authenticate with your registered credentials to manage land
-                parcels, verify ownership and review spatial records.
-              </p>
-              <p className="auth-footer">
-                Trusted infrastructure for land parcel identification.
-              </p>
-            </div>
+        <div className="card auth-card">
+          <h2 className="auth-title">Welcome back</h2>
+          <p className="auth-subtitle">
+            Enter your email and password to continue.
+          </p>
 
-            <div className="card auth-card">
-              <h2 className="auth-title">Welcome back</h2>
-              <p className="auth-subtitle">
-                Enter your email and password to continue.
-              </p>
+          <div className="form-grid" style={{ gridTemplateColumns: "1fr" }}>
+            <TextField
+              label="Email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+            <TextField
+              label="Password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
 
-              <div className="form-grid" style={{ gridTemplateColumns: "1fr" }}>
-                <TextField
-                  label="Email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                />
-                <TextField
-                  label="Password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                />
-              </div>
+          <div className="form-footer">
+            <PrimaryButton
+              type="button"
+              onClick={handleLogin}
+              disabled={loading || !email || !password}
+            >
+              {loading ? "Signing in…" : "Sign in"}
+            </PrimaryButton>
+            <span className="form-meta">
+              Enter to submit • Token stored securely in browser.
+            </span>
+          </div>
 
-              <div className="form-footer">
-                <PrimaryButton
-                  type="button"
-                  onClick={handleLogin}
-                  disabled={loading || !email || !password}
-                >
-                  {loading ? "Signing in…" : "Sign in"}
-                </PrimaryButton>
-                <span className="form-meta">
-                  Enter to submit • Token stored securely in browser.
-                </span>
-              </div>
-
-              <p className="auth-alt">
-                Don&apos;t have an account?{" "}
-                <Link to="/signup">Create one</Link>
-              </p>
-            </div>
-          </section>
-        </Layout>
-      </div>
-    </div>
+          <p className="auth-alt">
+            Don&apos;t have an account?{" "}
+            <Link to="/signup">Create one</Link>
+          </p>
+        </div>
+      </section>
+    </Layout>
   );
 }
 
