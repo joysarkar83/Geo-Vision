@@ -3,17 +3,23 @@ import { model, Schema } from 'mongoose';
 const userSchema = new Schema({
     aadhar: {
         type: Number,
-        unique: true
+        unique: true,
+        required: true
     },
     phone: {
         type: Number,
-        unique: true
+        unique: true,
+        required: true
     },
     email: {
         type: String,
-        unique: true
+        unique: true,
+        required: true
     },
-    password: String
+    password: {
+        type: String,
+        required: true
+    }
 })
 
 export default model("User", userSchema);
