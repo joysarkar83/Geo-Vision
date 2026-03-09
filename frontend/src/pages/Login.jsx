@@ -43,7 +43,7 @@ function Login() {
             <div className="auth-hero">
               <p className="auth-eyebrow">Secure land access</p>
               <h1 className="auth-headline">
-                Sign in to your <em>Geo‑Vision</em> console.
+                Log in to your <em>Geo‑Vision</em> console.
               </h1>
               <p className="auth-copy">
                 Authenticate with your registered credentials to manage land
@@ -85,7 +85,7 @@ function Login() {
                   onClick={handleLogin}
                   disabled={loading || !email || !password}
                 >
-                  {loading ? "Signing in…" : "Sign in"}
+                  {loading ? "Logging in…" : "Log in"}
                 </PrimaryButton>
                 <span className="form-meta">
                   Enter to submit • Token stored securely in browser.

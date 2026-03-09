@@ -32,18 +32,9 @@ function RecenterButton({ position }) {
   return (
     <button
       onClick={() => map.setView(position, 18)}
-      style={{
-        position: "absolute",
-        top: "10px",
-        right: "10px",
-        zIndex: 1000,
-        padding: "8px 12px",
-        background: "white",
-        border: "1px solid #ccc",
-        cursor: "pointer"
-      }}
+      className="map-recenter-button"
     >
-      My Location
+      <div className="py-3 px-3">📍</div>
     </button>
   );
 }
@@ -87,8 +78,9 @@ export default function MapView({ targetLocation }) {
 
     for (let land of lands) {
 
-      const polygonCoords = [...land.coordinates, land.coordinates[0]];
-      const polygon = turf.polygon([polygonCoords]);
+      const swappedCoords = land.coordinates.map(c => [c[1], c[0]]); // DB [lat, lng] -> [lng, lat] for Turf
+      const closedCoords = [...swappedCoords, swappedCoords[0]]; // Close the polygon
+      const polygon = turf.polygon([closedCoords]);
 
       const inside = turf.booleanPointInPolygon(point, polygon);
 
@@ -125,7 +117,7 @@ export default function MapView({ targetLocation }) {
 
       {lands.map((land) => {
 
-        const coords = land.coordinates.map(c => [c[1], c[0]]);
+        const coords = land.coordinates; // DB is [lat, lng], Leaflet expects [lat, lng]
         const isActive = activeLand === land._id;
 
         return (

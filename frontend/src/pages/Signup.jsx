@@ -30,10 +30,11 @@ function Signup() {
 
         <div className="form-grid">
           <TextField
-            label="Aadhar"
+            label="Aadhaar"
             placeholder="XXXX-XXXX-XXXX"
             value={form.aadhar || ""}
             onChange={(e) => setForm({ ...form, aadhar: e.target.value })}
+            required
           />
 
           <TextField

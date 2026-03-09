@@ -52,6 +52,38 @@ body {
   right: -140px;
 }
 
+@media (max-width: 900px) {
+  .bg-blob-1 {
+    width: 300px;
+    height: 300px;
+    top: -80px;
+    left: -60px;
+  }
+
+  .bg-blob-2 {
+    width: 280px;
+    height: 280px;
+    bottom: -90px;
+    right: -80px;
+  }
+}
+
+@media (max-width: 640px) {
+  .bg-blob-1 {
+    width: 200px;
+    height: 200px;
+    top: -50px;
+    left: -40px;
+  }
+
+  .bg-blob-2 {
+    width: 180px;
+    height: 180px;
+    bottom: -60px;
+    right: -50px;
+  }
+}
+
 .app-shell {
   position: relative;
   z-index: 1;
@@ -230,6 +262,12 @@ body {
   padding: 22px 20px;
 }
 
+@media (max-width: 640px) {
+  .card {
+    padding: 18px 16px;
+  }
+}
+
 .card-muted {
   background: rgba(255, 255, 255, 0.02);
 }
@@ -240,6 +278,14 @@ body {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 18px;
+}
+
+@media (max-width: 640px) {
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 }
 
 .card-title {
@@ -269,6 +315,12 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px 18px;
+}
+
+@media (max-width: 640px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .field {
@@ -367,9 +419,21 @@ body {
 }
 
 .map-shell {
-  height: 420px;
+  height: 590px;
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 900px) {
+  .map-shell {
+    height: 400px;
+  }
+}
+
+@media (max-width: 640px) {
+  .map-shell {
+    height: 300px;
+  }
 }
 
 .map-placeholder {
@@ -601,19 +665,135 @@ body {
 }
 
 @media (max-width: 640px) {
-  .navbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .navbar-links {
-    order: 3;
-    flex-wrap: wrap;
-  }
-
-  .navbar-actions {
-    align-self: flex-end;
+  .app-shell {
+    padding: 12px 12px 24px;
   }
 }
 
+@media (max-width: 640px) {
+  .navbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .navbar-brand {
+    gap: 8px;
+  }
+
+  .navbar-mark {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
+
+  .navbar-name {
+    font-size: 15px;
+  }
+
+  .navbar-subtitle {
+    font-size: 10px;
+  }
+
+  .navbar-links {
+    order: 2;
+    flex-wrap: nowrap;
+    gap: 12px;
+    font-size: 12px;
+  }
+
+  .nav-link {
+    padding: 4px 0;
+  }
+
+  .navbar-actions {
+    order: 3;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .navbar-actions button,
+  .navbar-actions a button {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .pill {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+}
+
+.search-input {
+  flex: 1;
+  border-radius: 999px 0 0 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-right: none;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px 13px;
+  font-size: 14px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-input:focus {
+  border-color: rgba(201, 169, 110, 0.7);
+  background: rgba(201, 169, 110, 0.06);
+  box-shadow: 0 0 0 1px rgba(201, 169, 110, 0.4);
+}
+
+.search-bar {
+  display: flex;
+  align-items: stretch;
+  width: 50%;
+  max-width: 420px;
+}
+
+@media (max-width: 900px) {
+  .search-bar {
+    width: 70%;
+    max-width: 350px;
+  }
+}
+
+@media (max-width: 640px) {
+  .search-bar {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.search-button {
+  padding: 0 16px;
+  border-radius: 0 999px 999px 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: none;
+  background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-soft));
+  color: #0a0a0a;
+}
+
+.search-button:hover {
+  box-shadow: 0 8px 24px rgba(201, 169, 110, 0.3);
+}
+
+.map-recenter-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--text-primary);
+  z-index: 1000;
+  gap: 6px;
+  border-radius: 50%;
+}
+
+.map-recenter-button:hover {
+  background: rgba(0, 0, 0, 0.82);
+  border-color: rgba(255, 255, 255, 0.3);
+}

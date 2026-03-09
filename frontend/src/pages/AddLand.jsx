@@ -70,7 +70,7 @@ function AddLand() {
           </div>
         </div>
 
-        <div className="form-grid">
+        <div className="form-grid mb-5">
           <TextField
             label="Owner name"
             placeholder="Owner Name"
@@ -212,7 +212,7 @@ function AddLand() {
 
         <TextField
           label="Coordinates"
-          placeholder="Coordinates (example: 72.99,19.07;73.00,19.08)"
+          placeholder="Coordinates (example: 21.13016, 81.76137; 21.12860, 81.76071;)"
           value={form.coordinates}
           onChange={(e) =>
             setForm({ ...form, coordinates: e.target.value })
@@ -220,7 +220,7 @@ function AddLand() {
           caption="Semicolon-separated points, each comma-separated longitude and latitude"
         />
 
-        <div className="field">
+        <div className="field mt-4">
           <label className="field-label">Documents</label>
           <input
             type="file"

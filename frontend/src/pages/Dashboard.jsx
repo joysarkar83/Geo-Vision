@@ -23,14 +23,14 @@ function Dashboard() {
         <div className="card map-shell">
 
           <div className="card-header">
-            <div>
+            <div className="w-full">
               <p className="section-eyebrow">Spatial overview</p>
 
-              <div>
+              <div className="flex justify-between items-center w-full">
                 <h2 className="card-title">Land parcel map</h2>
 
                 {/* Search bar */}
-                <SearchBar onLocationFound={setTargetLocation} />
+                <SearchBar onLocationFound={setTargetLocation} className="bg-yellow-300" />
               </div>
 
               <p className="card-subtitle">
