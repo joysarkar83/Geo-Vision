@@ -26,7 +26,7 @@ function Dashboard() {
             <div className="w-full">
               <p className="section-eyebrow">Spatial overview</p>
 
-              <div className="flex justify-between items-center w-full">
+              <div className="flex justify-between items-center w-full flex-wrap gap-3">
                 <h2 className="card-title">Land parcel map</h2>
 
                 {/* Search bar */}
@@ -85,7 +85,7 @@ function Dashboard() {
                         </span>
                       </div>
 
-                      <span className="pill">View details</span>
+                      <span className="pill whitespace-nowrap">View details</span>
 
                     </div>
                   </Link>
