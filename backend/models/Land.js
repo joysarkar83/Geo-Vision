@@ -34,6 +34,9 @@ const landSchema = new Schema({
     coordinates: {
         type: [[Number]]
     },
+    landmark: {
+        type: String
+    },
     documents: [String],
     driveFolder: String,
     propertyValue: Number,

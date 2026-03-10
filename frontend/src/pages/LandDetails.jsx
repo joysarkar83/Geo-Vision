@@ -51,25 +51,23 @@ function LandDetails() {
 
             <div className="details-chip-row">
               <span className="pill">Father: {land.fatherName}</span>
-              <span className="pill">Area: {land.landArea}</span>
+              <span className="pill">Area: {land.landArea} Acres</span>
               {loggedIn && (
-                <span className="pill">Value: {land.propertyValue}</span>
+                <span className="pill">Value: {land.propertyValue} Lakhs</span>
               )}
             </div>
           </div>
 
           <div className="details-metadata" style={{ marginTop: 16 }}>
             <div className="details-item">
-              <p className="details-label">Coordinates</p>
-              <p className="details-value">
-                {Array.isArray(land.coordinates)
-                  ? land.coordinates.join(", ")
-                  : land.coordinates}
-              </p>
+              <p className="details-label">Landmark</p>
+              <p className="details-value">{land.landmark}</p>
             </div>
             <div className="details-item">
               <p className="details-label">Status</p>
-              <p className="details-value">{land.status}</p>
+              <p className="details-value">{
+              land.sellingStatus === 10 ? "On Sale":"Not For Sale"
+              }</p>
             </div>
           </div>
         </div>

@@ -46,6 +46,12 @@ export default function SearchBar({ onLocationFound }) {
         placeholder="Search region..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
+        onKeyUp={(e) => {
+          if(e.key === "Enter"){
+            setQuery(e.target.value);
+            searchLocation();
+          }
+        }}
       />
       <button className="search-button" type="button" onClick={searchLocation}>
         Search
