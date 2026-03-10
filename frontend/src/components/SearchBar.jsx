@@ -33,7 +33,7 @@ export default function SearchBar({ onLocationFound }) {
       onLocationFound([lat, lon]);
 
     } catch (err) {
-      console.log(err);
+      console.error("Search failed:", err);
     }
 
   };

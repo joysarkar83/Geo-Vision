@@ -1,125 +1,328 @@
-import express from 'express';
-import mongoose from 'mongoose';
+import express from "express";
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import multer from "multer";
 import cors from "cors";
 import fs from "fs";
+import bcrypt from "bcrypt";
 
 import { createSubmissionFolder, uploadFile } from "./config/googleDrive.js";
 
+import User from "./models/User.js";
+import Land from "./models/Land.js";
+import Request from "./models/Request.js";
+
+dotenv.config();
+
 const app = express();
-app.use(cors());
 const PORT = process.env.PORT || 3000;
+const SECRET = process.env.JWT_SECRET;
+
+app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-dotenv.config();
-import User from './models/User.js';
-import Land from './models/Land.js';
-const SECRET = process.env.JWT_SECRET;
+
 const upload = multer({ dest: "uploads/" });
 
+/* =========================
+   AUTH MIDDLEWARE
+========================= */
+
 function authenticateToken(req, res, next) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-        return res.status(401).json({
-            message: "Token required"
-        });
-    }
-    const token = authHeader.split(" ")[1];
-    try {
-        const decoded = jwt.verify(token, SECRET);
-        req.user = decoded;
-        next();
-    } catch (err) {
-        return res.status(403).json({
-            message: "Invalid token"
-        });
-    }
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({
+      message: "Token required",
+    });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(403).json({
+      message: "Invalid token",
+    });
+  }
 }
 
-// Routes
+/* =========================
+   LAND ROUTES
+========================= */
+
 app.get("/land", async (req, res) => {
-    try {
-        const lands = await Land.find({verificationStatus: 1});
-        res.json(lands);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  try {
+    const lands = await Land.find({
+      verificationStatus: 1,
+    }).populate("ownerId", "username");
+
+    res.json(lands);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get("/land/:id", async (req, res) => {
-    try {
-        const land = await Land.findById(req.params.id);
-        if (!land) {
-            return res.status(404).json({ message: "Land not found" });
-        }
-        res.json(land);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+  try {
+    const land = await Land.findById(req.params.id).populate("ownerId");
+
+    if (!land) {
+      return res.status(404).json({
+        message: "Land not found",
+      });
     }
+
+    res.json(land);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.post("/login", async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({
-                message: "User not found"
-            });
-        }
-        if (user.password !== password) {
-            return res.status(401).json({
-                message: "Wrong password"
-            });
-        }
+/* =========================
+   AUTH ROUTES
+========================= */
 
-        const token = jwt.sign({ id: user._id, email: user.email }, SECRET, { expiresIn: "24h" });
-        res.json({
-            message: "Login successful",
-            token
-        });
-    } catch (err) {
-        res.status(500).json({
-            error: err.message
-        });
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
     }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        message: "Wrong password",
+      });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email},
+      SECRET,
+      { expiresIn: "24h" }
+    );
+
+    res.json({
+      message: "Login successful",
+      token,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
 });
 
 app.post("/signup", async (req, res) => {
-    try {
-        const user = new User(req.body);
-        await user.save();
-        res.json({
-            message: "User registered successfully"
-        });
-    } catch (err) {
-        res.status(400).json({
-            error: err.message
-        });
-    }
+  try {
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const user = new User({ ...req.body, password: hashedPassword });
+
+    await user.save();
+
+    res.json({
+      message: "User registered successfully",
+    });
+
+  } catch (err) {
+    res.status(400).json({
+      error: err.message,
+    });
+  }
 });
 
+/* =========================
+   ADD LAND
+========================= */
+
 app.post("/land/add", authenticateToken, async (req, res) => {
-    try {
-        const landData = new Land({
-            ...req.body,
-            submittedBy: req.user.id,
-            driveFolder: req.body.folderId,
-            documents: req.body.files
-        });
-        await landData.save();
-        res.json({
-            message: "Land submitted for verification",
-            landData
-        });
-    } catch (err) {
-        res.status(400).json({
-            error: err.message
-        });
-    }
+  try {
+
+    const landData = new Land({
+      ...req.body,
+      ownerId: req.user.id,
+      driveFolder: req.body.driveFolder,
+      documents: req.body.documents,
+    });
+
+    await landData.save();
+
+    res.json({
+      message: "Land submitted for verification",
+      landData,
+    });
+
+  } catch (err) {
+    res.status(400).json({
+      error: err.message,
+    });
+  }
 });
+
+/* =========================
+   CONTACT REQUEST SYSTEM
+========================= */
+
+app.post("/request/contact", authenticateToken, async (req, res) => {
+
+  try {
+
+    const buyerId = req.user.id;
+    const { landId } = req.body;
+
+    const land = await Land.findById(landId);
+
+    if (!land) {
+      return res.status(404).json({
+        message: "Land not found",
+      });
+    }
+
+    if (land.ownerId.toString() === buyerId) {
+      return res.json({ message: "You own this land" });
+    }
+
+    const existing = await Request.findOne({
+      landId,
+      buyerId,
+    });
+
+    if (existing) {
+      return res.json({
+        message: "Request already sent",
+      });
+    }
+
+    const request = await Request.create({
+      landId,
+      buyerId,
+      sellerId: land.ownerId,
+    });
+
+    res.json({
+      message: "Request sent",
+      request,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+
+});
+
+/* =========================
+   SELLER REQUESTS
+========================= */
+
+app.get("/request/my", authenticateToken, async (req, res) => {
+
+  try {
+
+    const requests = await Request.find({
+      sellerId: req.user.id,
+      status: "pending",
+    })
+      .populate("landId")
+      .populate("buyerId", "username email phone");
+
+    res.json(requests);
+
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+
+});
+
+/* =========================
+   APPROVE REQUEST
+========================= */
+
+app.post("/request/approve", authenticateToken, async (req, res) => {
+
+  try {
+
+    const { requestId } = req.body;
+
+    const request = await Request.findById(requestId);
+
+    if (!request) {
+      return res.status(404).json({
+        message: "Request not found",
+      });
+    }
+
+    request.status = "approved";
+    await request.save();
+
+    res.json({
+      message: "Request approved",
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+
+});
+
+/* =========================
+   CHECK REQUEST STATUS
+========================= */
+
+app.get("/request/check/:landId", authenticateToken, async (req, res) => {
+
+  try {
+
+    const buyerId = req.user.id;
+
+    const request = await Request.findOne({
+      landId: req.params.landId,
+      buyerId,
+      status: "approved",
+    });
+
+    if (!request) {
+      return res.json({
+        approved: false,
+      });
+    }
+
+    const land = await Land.findById(req.params.landId).populate("ownerId");
+
+    res.json({
+      approved: true,
+      phone: land.ownerId.phone,
+      email: land.ownerId.email,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+
+});
+
+/* =========================
+   DOCUMENT UPLOAD
+========================= */
 
 app.post(
   "/land/upload-docs",
@@ -130,22 +333,20 @@ app.post(
     try {
 
       const folderId = await createSubmissionFolder();
-
       const fileIds = [];
 
       for (const file of req.files) {
 
         const fileId = await uploadFile(file, folderId);
-
         fileIds.push(fileId);
 
-        fs.unlinkSync(file.path); // delete temp file
+        fs.unlinkSync(file.path);
 
       }
 
       res.json({
         folderId,
-        files: fileIds
+        files: fileIds,
       });
 
     } catch (err) {
@@ -153,26 +354,38 @@ app.post(
       console.error(err);
 
       res.status(500).json({
-        error: err.message
+        error: err.message,
       });
 
     }
 
-});
+  }
+);
+
+/* =========================
+   FALLBACK
+========================= */
 
 app.use((req, res) => {
-    res.status(404).json({
-        message: "Route not found"
-    });
+  res.status(404).json({
+    message: "Route not found",
+  });
 });
 
-// Server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-})
+/* =========================
+   SERVER START
+========================= */
 
-main().catch(err => console.log(err));
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+/* =========================
+   DATABASE CONNECTION
+========================= */
+
+main().catch((err) => console.log(err));
 
 async function main() {
-    await mongoose.connect('mongodb://127.0.0.1:27017/Geo-Vision');
+  await mongoose.connect("mongodb://127.0.0.1:27017/Geo-Vision");
 }

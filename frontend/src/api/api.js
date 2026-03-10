@@ -1,32 +1,113 @@
 const API = "http://localhost:3000";
 
+/* ======================
+   AUTH
+====================== */
+
 export async function signup(data) {
-  return fetch(`${API}/signup`, {
+
+  const res = await fetch(`${API}/signup`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify(data)
   });
+
+  return res.json();
 }
 
 export async function login(data) {
-  return fetch(`${API}/login`, {
+
+  const res = await fetch(`${API}/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify(data)
   });
+
+  return res.json();
 }
 
+/* ======================
+   LAND
+====================== */
+
 export async function getLands() {
+
   const res = await fetch(`${API}/land`);
+
   return res.json();
 }
 
 export async function getLand(id) {
+
   const res = await fetch(`${API}/land/${id}`);
+
+  return res.json();
+}
+
+/* ======================
+   REQUESTS
+====================== */
+
+export async function sendContactRequest(landId) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/request/contact`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    body: JSON.stringify({ landId }),
+  });
+
+  return res.json();
+}
+
+export async function checkRequestStatus(landId) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/request/check/${landId}`, {
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  });
+
+  return res.json();
+}
+
+export async function getMyRequests() {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/request/my`, {
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  });
+
+  return res.json();
+}
+
+export async function approveRequest(requestId) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/request/approve`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    body: JSON.stringify({ requestId }),
+  });
+
   return res.json();
 }
 
 export async function addLand(data) {
+
   const token = localStorage.getItem("token");
 
   const res = await fetch(`${API}/land/add`, {
@@ -41,9 +122,16 @@ export async function addLand(data) {
   return res.json();
 }
 
+/* ======================
+   DOCUMENT UPLOAD
+====================== */
+
 export async function uploadDocs(files) {
+
   const token = localStorage.getItem("token");
+
   const formData = new FormData();
+
   files.forEach(file => formData.append("documents", file));
 
   const res = await fetch(`${API}/land/upload-docs`, {
@@ -56,3 +144,4 @@ export async function uploadDocs(files) {
 
   return res.json();
 }
+

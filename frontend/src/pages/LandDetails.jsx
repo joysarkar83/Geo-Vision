@@ -1,19 +1,55 @@
-import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getLand } from "../api/api";
+import { useParams } from "react-router-dom";
+import { checkRequestStatus, getLand, sendContactRequest } from "../api/api";
 import Layout from "../components/Layout";
-import { isLoggedIn } from "../utils/auth";
+import PrimaryButton from "../components/ui/PrimaryButton";
+import { getUserId, isLoggedIn } from "../utils/auth";
 
 function LandDetails() {
   const { id } = useParams();
 
   const [land, setLand] = useState(null);
+  const [contact, setContact] = useState(null);
+  const [requested, setRequested] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const currentUserId = getUserId();
+  const isOwner = land?.ownerId?._id === currentUserId;
+  const loggedIn = isLoggedIn();
 
   useEffect(() => {
-    getLand(id).then((data) => setLand(data));
-  }, [id]);
+    getLand(id)
+      .then((data) => {
+        if (data?._id) {
+          setLand(data);
+          setLoadError("");
+          return;
+        }
 
-  const loggedIn = isLoggedIn();
+        setLand(null);
+        setLoadError(data?.message || "Unable to load land details.");
+      })
+      .catch(() => {
+        setLand(null);
+        setLoadError("Unable to load land details.");
+      });
+
+    if (loggedIn) {
+      checkRequestStatus(id).then((data) => {
+        if (data.approved) {
+          setContact({
+            phone: data.phone,
+            email: data.email,
+          });
+        }
+      });
+    }
+  }, [id, loggedIn]);
+
+  const sendRequest = async () => {
+    const data = await sendContactRequest(id);
+    alert(data.message);
+    setRequested(true);
+  };
 
   if (!land) {
     return (
@@ -21,11 +57,21 @@ function LandDetails() {
         <div className="card">
           <div className="card-header">
             <div>
-              <p className="section-eyebrow">Loading record</p>
-              <h1 className="card-title">Fetching land details…</h1>
+              <p className="section-eyebrow">
+                {loadError ? "Record unavailable" : "Loading record"}
+              </p>
+              <h1 className="card-title">
+                {loadError || "Fetching land details..."}
+              </h1>
             </div>
           </div>
-          <div className="skeleton" />
+          {loadError ? (
+            <p className="text-sm text-gray-500">
+              Check the selected land ID or backend response and try again.
+            </p>
+          ) : (
+            <div className="skeleton" />
+          )}
         </div>
       </Layout>
     );
@@ -47,13 +93,16 @@ function LandDetails() {
 
           <div>
             <p className="details-label">Owner name</p>
-            <p className="details-highlight">{land.ownerName}</p>
+            <p className="details-highlight">{land.ownerId?.username}</p>
 
             <div className="details-chip-row">
               <span className="pill">Father: {land.fatherName}</span>
               <span className="pill">Area: {land.landArea} Acres</span>
+
               {loggedIn && (
-                <span className="pill">Value: {land.propertyValue} Lakhs</span>
+                <span className="pill">
+                  Value: {land.propertyValue} Lakhs
+                </span>
               )}
             </div>
           </div>
@@ -63,11 +112,12 @@ function LandDetails() {
               <p className="details-label">Landmark</p>
               <p className="details-value">{land.landmark}</p>
             </div>
+
             <div className="details-item">
               <p className="details-label">Status</p>
-              <p className="details-value">{
-              land.sellingStatus === 10 ? "On Sale":"Not For Sale"
-              }</p>
+              <p className="details-value">
+                {land.sellingStatus === 10 ? "On Sale" : "Not For Sale"}
+              </p>
             </div>
           </div>
         </div>
@@ -89,17 +139,30 @@ function LandDetails() {
               <p className="details-value">{land.address}</p>
             </div>
 
-            {loggedIn && (
+            {!loggedIn && (
+              <p className="text-sm text-gray-500">
+                Login to request seller contact details.
+              </p>
+            )}
+
+            {loggedIn && contact && (
               <>
                 <div className="details-item">
                   <p className="details-label">Phone</p>
-                  <p className="details-value">{land.phone}</p>
+                  <p className="details-value">{contact.phone}</p>
                 </div>
+
                 <div className="details-item">
                   <p className="details-label">Email</p>
-                  <p className="details-value">{land.email}</p>
+                  <p className="details-value">{contact.email}</p>
                 </div>
               </>
+            )}
+
+            {loggedIn && !contact && !isOwner && (
+              <PrimaryButton type="button" onClick={sendRequest}>
+                {requested ? "Request Sent" : "Request Contact"}
+              </PrimaryButton>
             )}
           </div>
         </div>
@@ -109,4 +172,3 @@ function LandDetails() {
 }
 
 export default LandDetails;
-

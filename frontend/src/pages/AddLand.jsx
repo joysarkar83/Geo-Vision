@@ -8,20 +8,17 @@ import { isLoggedIn } from "../utils/auth";
 
 function AddLand() {
   const navigate = useNavigate();
+
   const [form, setForm] = useState({
-    ownerName: "",
     fatherName: "",
     dob: "",
     address: "",
     landArea: "",
-    aadhar: "",
     pan: "",
     regNum: "",
-    phone: "",
-    email: "",
     coordinates: "",
     propertyValue: "",
-    status: "",
+    status: 11,
     files: [],
   });
 
@@ -37,17 +34,30 @@ function AddLand() {
 
     if (form.files.length > 0) {
       const uploadResult = await uploadDocs(form.files);
+
       if (uploadResult.error) {
         alert("File upload failed: " + uploadResult.error);
         return;
       }
+
       folderId = uploadResult.folderId;
       uploadedFiles = uploadResult.files;
     }
 
     const payload = {
-      ...form,
-      coordinates: form.coordinates.split(";").map(point => point.split(",").map(Number)),
+      fatherName: form.fatherName,
+      dob: form.dob,
+      address: form.address,
+      landArea: form.landArea,
+      pan: form.pan,
+      regNum: form.regNum,
+      coordinates: form.coordinates
+        .split(";")
+        .map(point => point.trim())
+        .filter(point => point.length > 0)
+        .map(point => point.split(",").map(Number)),
+      propertyValue: form.propertyValue,
+      sellingStatus: form.status,
       driveFolder: folderId,
       documents: uploadedFiles,
     };
@@ -55,6 +65,10 @@ function AddLand() {
     const result = await addLand(payload);
 
     alert(result.message);
+
+    if (!result.error) {
+      navigate("/");
+    }
   };
 
   return (
@@ -71,14 +85,6 @@ function AddLand() {
         </div>
 
         <div className="form-grid mb-5">
-          <TextField
-            label="Owner name"
-            placeholder="Owner Name"
-            value={form.ownerName}
-            onChange={(e) =>
-              setForm({ ...form, ownerName: e.target.value })
-            }
-          />
 
           <TextField
             label="Father name"
@@ -119,16 +125,6 @@ function AddLand() {
           />
 
           <TextField
-            label="Aadhar"
-            type="number"
-            placeholder="Aadhar"
-            value={form.aadhar}
-            onChange={(e) =>
-              setForm({ ...form, aadhar: Number(e.target.value) })
-            }
-          />
-
-          <TextField
             label="PAN"
             placeholder="PAN"
             value={form.pan}
@@ -147,26 +143,6 @@ function AddLand() {
           />
 
           <TextField
-            label="Phone"
-            type="number"
-            placeholder="Phone"
-            value={form.phone}
-            onChange={(e) =>
-              setForm({ ...form, phone: Number(e.target.value) })
-            }
-          />
-
-          <TextField
-            label="Email"
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) =>
-              setForm({ ...form, email: e.target.value })
-            }
-          />
-
-          <TextField
             label="Property value (Lakhs)"
             type="number"
             placeholder="Property Value (Lakhs)"
@@ -179,9 +155,22 @@ function AddLand() {
             }
           />
 
+          <TextField
+            label="Landmark"
+            placeholder="Nearby Landmark"
+            value={form.landmark}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                propertyValue: Number(e.target.value),
+              })
+            }
+          />
+
           <div className="field">
             <label className="field-label">Status</label>
             <div className="radio-group">
+
               <label className="radio-label">
                 <input
                   type="radio"
@@ -194,6 +183,7 @@ function AddLand() {
                 />
                 <span>On Sale</span>
               </label>
+
               <label className="radio-label">
                 <input
                   type="radio"
@@ -206,18 +196,20 @@ function AddLand() {
                 />
                 <span>Not for Sale</span>
               </label>
+
             </div>
           </div>
+
         </div>
 
         <TextField
           label="Coordinates"
-          placeholder="Coordinates (example: 21.13016, 81.76137; 21.12860, 81.76071;)"
+          placeholder="Coordinates (example: 21.13016,81.76137; 21.12860,81.76071;)"
           value={form.coordinates}
           onChange={(e) =>
             setForm({ ...form, coordinates: e.target.value })
           }
-          caption="Semicolon-separated points, each comma-separated longitude and latitude"
+          caption="Semicolon-separated points, each comma-separated latitude and longitude"
         />
 
         <div className="field mt-4">
@@ -226,19 +218,25 @@ function AddLand() {
             type="file"
             multiple
             className="field-input"
-            onChange={(e) => setForm({ ...form, files: Array.from(e.target.files) })}
+            onChange={(e) =>
+              setForm({ ...form, files: Array.from(e.target.files) })
+            }
           />
-          <p className="field-caption">Upload supporting documents (PDF, images, etc.)</p>
+          <p className="field-caption">
+            Upload supporting documents (PDF, images, etc.)
+          </p>
         </div>
 
         <div className="form-footer">
           <PrimaryButton type="button" onClick={handleSubmit}>
             Submit
           </PrimaryButton>
+
           <span className="form-meta">
-            Coordinates are parsed as semicolon-separated points into an array of [longitude, latitude] pairs.
+            Coordinates are parsed as semicolon-separated points into an array of [lat, lng] pairs.
           </span>
         </div>
+
       </section>
     </Layout>
   );

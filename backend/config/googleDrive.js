@@ -19,12 +19,9 @@ export async function createSubmissionFolder() {
 
     const folder = await drive.files.create({
         requestBody: {
-            name: file.originalname,
+            name: folderName,
+            mimeType: 'application/vnd.google-apps.folder',
             parents: [ROOT_FOLDER]
-        },
-        media: {
-            mimeType: file.mimetype,
-            body: fs.createReadStream(file.path)
         }
     });
 

@@ -1,8 +1,11 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { isLoggedIn, getUserEmail, logout } from "../utils/auth";
 
 function Navbar() {
+
   const location = useLocation();
+  const navigate = useNavigate();
+
   const loggedIn = isLoggedIn();
   const userEmail = loggedIn ? getUserEmail() : null;
 
@@ -10,8 +13,14 @@ function Navbar() {
     location.pathname === path ||
     (path !== "/" && location.pathname.startsWith(path));
 
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
     <header className="navbar">
+
       <div className="navbar-brand">
         <div className="navbar-mark">G</div>
         <div className="navbar-title">
@@ -21,6 +30,7 @@ function Navbar() {
       </div>
 
       <nav className="navbar-links">
+
         <NavLink
           to="/"
           className={({ isActive: routeActive }) =>
@@ -29,19 +39,24 @@ function Navbar() {
         >
           Dashboard
         </NavLink>
-        <NavLink
-          to="/add-land"
-          className={({ isActive: routeActive }) =>
-            `nav-link ${
-              routeActive || isActive("/add-land") ? "nav-link-active" : ""
-            }`
-          }
-        >
-          Add Land
-        </NavLink>
+
+        {loggedIn && (
+          <NavLink
+            to="/add-land"
+            className={({ isActive: routeActive }) =>
+              `nav-link ${
+                routeActive || isActive("/add-land") ? "nav-link-active" : ""
+              }`
+            }
+          >
+            Add Land
+          </NavLink>
+        )}
+
       </nav>
 
       <div className="navbar-actions">
+
         {!loggedIn && (
           <>
             <NavLink to="/login">
@@ -49,6 +64,7 @@ function Navbar() {
                 Login
               </button>
             </NavLink>
+
             <NavLink to="/signup">
               <button className="btn-primary" type="button">
                 Signup
@@ -62,15 +78,21 @@ function Navbar() {
             <div className="pill">
               {userEmail || "Authenticated user"}
             </div>
-            <button className="btn-ghost" type="button" onClick={logout}>
+
+            <button
+              className="btn-ghost"
+              type="button"
+              onClick={handleLogout}
+            >
               Logout
             </button>
           </>
         )}
+
       </div>
+
     </header>
   );
 }
 
 export default Navbar;
-

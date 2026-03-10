@@ -6,25 +6,43 @@ import PrimaryButton from "../components/ui/PrimaryButton";
 import TextField from "../components/ui/TextField";
 
 function Login() {
+
   const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+
     setLoading(true);
+
     try {
-      const res = await login({ email, password });
-      const data = await res.json();
+
+      const data = await login({ email, password });
+
       if (data.token) {
+
         localStorage.setItem("token", data.token);
+
         navigate("/");
+
       } else {
-        alert("Login failed");
+
+        alert(data.message || "Login failed");
+
       }
+
+    } catch (err) {
+
+      alert("Server error: " + err.message);
+
     } finally {
+
       setLoading(false);
+
     }
+
   };
 
   const handleKeyDown = (e) => {
@@ -33,34 +51,45 @@ function Login() {
 
   return (
     <div className="app-root">
+
       <div className="bg-blob bg-blob-1" />
       <div className="bg-blob bg-blob-2" />
 
       <div className="app-shell">
-        {/* Reuse navbar for brand coherence */}
+
         <Layout>
+
           <section className="auth-layout">
+
             <div className="auth-hero">
+
               <p className="auth-eyebrow">Secure land access</p>
+
               <h1 className="auth-headline">
-                Log in to your <em>Geo‑Vision</em> console.
+                Log in to your <em>Geo-Vision</em> console.
               </h1>
+
               <p className="auth-copy">
                 Authenticate with your registered credentials to manage land
                 parcels, verify ownership and review spatial records.
               </p>
+
               <p className="auth-footer">
                 Trusted infrastructure for land parcel identification.
               </p>
+
             </div>
 
             <div className="card auth-card">
+
               <h2 className="auth-title">Welcome back</h2>
+
               <p className="auth-subtitle">
                 Enter your email and password to continue.
               </p>
 
               <div className="form-grid" style={{ gridTemplateColumns: "1fr" }}>
+
                 <TextField
                   label="Email"
                   type="email"
@@ -69,6 +98,7 @@ function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={handleKeyDown}
                 />
+
                 <TextField
                   label="Password"
                   type="password"
@@ -77,9 +107,11 @@ function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={handleKeyDown}
                 />
+
               </div>
 
               <div className="form-footer">
+
                 <PrimaryButton
                   type="button"
                   onClick={handleLogin}
@@ -87,19 +119,26 @@ function Login() {
                 >
                   {loading ? "Logging in…" : "Log in"}
                 </PrimaryButton>
+
                 <span className="form-meta">
                   Enter to submit • Token stored securely in browser.
                 </span>
+
               </div>
 
               <p className="auth-alt">
                 Don&apos;t have an account?{" "}
                 <Link to="/signup">Create one</Link>
               </p>
+
             </div>
+
           </section>
+
         </Layout>
+
       </div>
+
     </div>
   );
 }

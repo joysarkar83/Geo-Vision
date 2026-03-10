@@ -1,14 +1,23 @@
 import { MapContainer, TileLayer, Marker, Polygon, useMap, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import axios from "axios";
+import { getLands } from "../api/api";
 import * as turf from "@turf/turf";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 function LocateUser({ setPosition }) {
   const map = useMap();
 
   useEffect(() => {
+    let cancelled = false;
+
+    if (!navigator.geolocation) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
     navigator.geolocation.getCurrentPosition((pos) => {
+      if (cancelled) return;
 
       const coords = [
         pos.coords.latitude,
@@ -16,10 +25,17 @@ function LocateUser({ setPosition }) {
       ];
 
       setPosition(coords);
-      map.setView(coords, 18);
-
+      map.whenReady(() => {
+        if (!cancelled) {
+          map.setView(coords, 18);
+        }
+      });
     });
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [setPosition, map]);
 
   return null;
 }
@@ -44,10 +60,12 @@ function MoveToLocation({ targetLocation }) {
   const map = useMap();
 
   useEffect(() => {
-    if (targetLocation) {
-      map.setView(targetLocation, 14);
+    if (Array.isArray(targetLocation) && targetLocation.length === 2) {
+      map.whenReady(() => {
+        map.setView(targetLocation, 14);
+      });
     }
-  }, [targetLocation]);
+  }, [targetLocation, map]);
 
   return null;
 }
@@ -60,19 +78,17 @@ export default function MapView({ targetLocation }) {
 
   // Fetch land parcels
   useEffect(() => {
-
-    axios.get("http://localhost:3000/land")
-      .then(res => {
-        setLands(res.data);
-      })
-      .catch(err => console.log(err));
-
+    getLands()
+      .then((data) => setLands(Array.isArray(data) ? data : []))
+      .catch((err) => {
+        console.error("Failed to fetch lands:", err);
+        setLands([]);
+      });
   }, []);
 
-  // Detect which parcel user stands on
-  useEffect(() => {
-
-    if (!position || lands.length === 0) return;
+  // Compute active land
+  const computedActiveLand = useMemo(() => {
+    if (!position || lands.length === 0) return null;
 
     const point = turf.point([position[1], position[0]]);
 
@@ -85,14 +101,16 @@ export default function MapView({ targetLocation }) {
       const inside = turf.booleanPointInPolygon(point, polygon);
 
       if (inside) {
-        setActiveLand(land._id);
-        return;
+        return land._id;
       }
     }
 
-    setActiveLand(null);
-
+    return null;
   }, [position, lands]);
+
+  useEffect(() => {
+    setActiveLand(computedActiveLand);
+  }, [computedActiveLand]);
 
   return (
     <MapContainer
@@ -130,13 +148,13 @@ export default function MapView({ targetLocation }) {
             }}
             eventHandlers={{
               click: () => {
-                console.log("Land clicked:", land);
+                // placeholder for click behavior
               }
             }}
           >
             <Popup>
               <div>
-                <strong>Owner:</strong> {land.ownerName}<br/>
+                <strong>Owner:</strong> {land.ownerId?.username}<br/>
                 <strong>Father:</strong> {land.fatherName}<br/>
                 <strong>Status:</strong> {land.sellingStatus === 10 ? "On Sale" : "Not for Sale"}
               </div>

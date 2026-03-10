@@ -6,37 +6,28 @@ import { model, Schema } from 'mongoose';
 // 1: Verified
 
 const landSchema = new Schema({
-    ownerName: String,
+    ownerId: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
     fatherName: String,
     dob: Date,
     address: String,
-    landArea: Number,
-    aadhar: {
+    landArea: {
         type: Number,
-        unique: true
+        required: true
     },
-    pan: {
-        type: String,
-        unique: true
-    },
+    pan: String,
     regNum: {
         type: String,
         unique: true
     },
-    phone: {
-        type: Number,
-        unique: true
-    },
-    email: {
-        type: String,
-        unique: true
-    },
     coordinates: {
-        type: [[Number]]
+        type: [[Number]],
+        required: true
     },
-    landmark: {
-        type: String
-    },
+    landmark: String,
     documents: [String],
     driveFolder: String,
     propertyValue: Number,
