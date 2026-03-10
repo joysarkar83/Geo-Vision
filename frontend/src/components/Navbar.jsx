@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { isLoggedIn, getUserEmail, logout } from "../utils/auth";
+import { getCurrentUser } from "../api/api";
+import { getUsername, isLoggedIn, logout } from "../utils/auth";
 
 function Navbar() {
 
@@ -7,7 +9,23 @@ function Navbar() {
   const navigate = useNavigate();
 
   const loggedIn = isLoggedIn();
-  const userEmail = loggedIn ? getUserEmail() : null;
+  const username = loggedIn ? getUsername() : null;
+  const [fetchedUsername, setFetchedUsername] = useState(null);
+
+  useEffect(() => {
+    if (!loggedIn || username) {
+      return;
+    }
+
+    getCurrentUser()
+      .then((data) => {
+        if (data?.username) {
+          localStorage.setItem("username", data.username);
+          setFetchedUsername(data.username);
+        }
+      })
+      .catch(() => {});
+  }, [loggedIn, username]);
 
   const isActive = (path) =>
     location.pathname === path ||
@@ -76,7 +94,7 @@ function Navbar() {
         {loggedIn && (
           <>
             <div className="pill">
-              {userEmail || "Authenticated user"}
+              {username || fetchedUsername || "Authenticated user"}
             </div>
 
             <button

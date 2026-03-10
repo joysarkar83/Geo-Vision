@@ -32,7 +32,7 @@ function Signup() {
 
   return (
     <Layout>
-      <section className="card">
+      <section className="card mb-5">
 
         <div className="card-header">
           <div>

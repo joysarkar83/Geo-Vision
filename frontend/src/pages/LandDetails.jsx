@@ -122,7 +122,7 @@ function LandDetails() {
           </div>
         </div>
 
-        <div className="card card-muted">
+        <div className="card card-muted flex flex-col gap-3">
           <div className="card-header">
             <div>
               <p className="section-eyebrow">Registered address</p>
@@ -158,13 +158,12 @@ function LandDetails() {
                 </div>
               </>
             )}
-
-            {loggedIn && !contact && !isOwner && (
-              <PrimaryButton type="button" onClick={sendRequest}>
-                {requested ? "Request Sent" : "Request Contact"}
-              </PrimaryButton>
-            )}
           </div>
+          {loggedIn && !contact && !isOwner && (
+            <PrimaryButton type="button" onClick={sendRequest} className="w-max text-center">
+              {requested ? "Request Sent" : "Request Contact"}
+            </PrimaryButton>
+          )}
         </div>
       </section>
     </Layout>

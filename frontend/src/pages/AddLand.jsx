@@ -17,6 +17,7 @@ function AddLand() {
     pan: "",
     regNum: "",
     coordinates: "",
+    landmark: "",
     propertyValue: "",
     status: 11,
     files: [],
@@ -29,6 +30,24 @@ function AddLand() {
   }, [navigate]);
 
   const handleSubmit = async () => {
+    const coordinates = form.coordinates
+      .split(";")
+      .map((point) => point.trim())
+      .filter((point) => point.length > 0)
+      .map((point) => point.split(",").map((value) => Number(value.trim())));
+
+    const hasInvalidCoordinates =
+      coordinates.length === 0 ||
+      coordinates.some(
+        (point) =>
+          point.length !== 2 || point.some((value) => Number.isNaN(value))
+      );
+
+    if (hasInvalidCoordinates) {
+      alert("Enter coordinates as latitude,longitude pairs separated by semicolons.");
+      return;
+    }
+
     let folderId = null;
     let uploadedFiles = [];
 
@@ -51,11 +70,8 @@ function AddLand() {
       landArea: form.landArea,
       pan: form.pan,
       regNum: form.regNum,
-      coordinates: form.coordinates
-        .split(";")
-        .map(point => point.trim())
-        .filter(point => point.length > 0)
-        .map(point => point.split(",").map(Number)),
+      coordinates,
+      landmark: form.landmark,
       propertyValue: form.propertyValue,
       sellingStatus: form.status,
       driveFolder: folderId,
@@ -64,7 +80,7 @@ function AddLand() {
 
     const result = await addLand(payload);
 
-    alert(result.message);
+    alert(result.message || result.error || "Unable to submit land details.");
 
     if (!result.error) {
       navigate("/");
@@ -162,7 +178,7 @@ function AddLand() {
             onChange={(e) =>
               setForm({
                 ...form,
-                propertyValue: Number(e.target.value),
+                landmark: e.target.value,
               })
             }
           />

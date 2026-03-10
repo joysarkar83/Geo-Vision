@@ -30,6 +30,18 @@ export async function login(data) {
   return res.json();
 }
 
+export async function getCurrentUser() {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/me`, {
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  });
+
+  return res.json();
+}
+
 /* ======================
    LAND
 ====================== */
@@ -144,4 +156,3 @@ export async function uploadDocs(files) {
 
   return res.json();
 }
-

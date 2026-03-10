@@ -24,6 +24,7 @@ function Login() {
       if (data.token) {
 
         localStorage.setItem("token", data.token);
+        localStorage.setItem("username", data.username || "");
 
         navigate("/");
 
@@ -59,7 +60,7 @@ function Login() {
 
         <Layout>
 
-          <section className="auth-layout">
+          <section className="auth-layout mb-5">
 
             <div className="auth-hero">
 

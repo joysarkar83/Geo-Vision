@@ -45,6 +45,19 @@ export function getUserEmail() {
 
 }
 
+export function getUsername() {
+
+  const token = getToken();
+  const payload = parseJwt(token);
+
+  if (payload?.username) return payload.username;
+
+  if (typeof window === "undefined") return null;
+
+  return localStorage.getItem("username");
+
+}
+
 export function getUserId() {
 
   const token = getToken();
@@ -61,5 +74,6 @@ export function logout() {
   if (typeof window === "undefined") return;
 
   localStorage.removeItem("token");
+  localStorage.removeItem("username");
 
 }

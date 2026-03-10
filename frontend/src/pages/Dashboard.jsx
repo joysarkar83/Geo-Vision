@@ -1,34 +1,55 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getLands, getMyRequests, approveRequest as apiApproveRequest } from "../api/api";
 import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
 import PrimaryButton from "../components/ui/PrimaryButton";
 import MapView from "../components/MapView";
 import SearchBar from "../components/SearchBar";
+import { isLoggedIn } from "../utils/auth";
 
 function Dashboard() {
 
   const [lands, setLands] = useState([]);
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [targetLocation, setTargetLocation] = useState(null);
+  const [ownerSearchQuery, setOwnerSearchQuery] = useState("");
+  const [ownerSearchTerm, setOwnerSearchTerm] = useState("");
 
   useEffect(() => {
 
     getLands().then((data) => setLands(Array.isArray(data) ? data : []));
 
-    getMyRequests()
-      .then((data) => {
-        setIncomingRequests(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {
-        setIncomingRequests([]);
-      });
+    if (isLoggedIn()) {
+      getMyRequests()
+        .then((data) => {
+          setIncomingRequests(Array.isArray(data) ? data : []);
+        })
+        .catch(() => {
+          setIncomingRequests([]);
+        });
+    }
 
   }, []);
 
   const approveRequest = async (id) => {
     await apiApproveRequest(id);
     setIncomingRequests((prev) => prev.filter((r) => r._id !== id));
+  };
+
+  const filteredLands = useMemo(() => {
+    const normalizedSearch = ownerSearchTerm.trim().toLowerCase();
+
+    if (!normalizedSearch) {
+      return lands;
+    }
+
+    return lands.filter((land) =>
+      (land.ownerId?.username || "").toLowerCase().includes(normalizedSearch)
+    );
+  }, [lands, ownerSearchTerm]);
+
+  const handleOwnerSearch = () => {
+    setOwnerSearchTerm(ownerSearchQuery);
   };
 
   return (
@@ -42,7 +63,7 @@ function Dashboard() {
             <div className="w-full">
               <p className="section-eyebrow">Spatial overview</p>
 
-              <div className="flex justify-between items-center w-full flex-wrap gap-3">
+              <div className="flex justify-between w-full flex-wrap gap-3 items-center">
                 <h2 className="card-title">Land parcel map</h2>
 
                 <SearchBar
@@ -50,11 +71,6 @@ function Dashboard() {
                   className="bg-yellow-300"
                 />
               </div>
-
-              <p className="card-subtitle">
-                A large, dedicated canvas reserved for the interactive map
-                integration.
-              </p>
             </div>
           </div>
 
@@ -64,119 +80,135 @@ function Dashboard() {
 
         </div>
 
-        {/* Land List Card */}
-        <div className="card">
+        <div className="flex flex-col gap-4">
+          {/* Incoming Requests Card */}
+          <div className="card">
 
-          <div className="card-header">
-            <div>
-              <p className="section-eyebrow">Registry</p>
-              <h2 className="card-title">Land parcels</h2>
-
-              <p className="card-subtitle">
-                Browse recorded parcels and open details for a precise view.
-              </p>
+            <div className="card-header">
+              <div>
+                <p className="section-eyebrow">Buyer activity</p>
+                <h2 className="card-title">Incoming requests</h2>
+              </div>
             </div>
 
-            <Link to="/add-land">
-              <PrimaryButton type="button">
-                Add parcel
-              </PrimaryButton>
-            </Link>
-          </div>
+            {incomingRequests.length === 0 ? (
 
-          {lands.length === 0 ? (
-            <div className="skeleton" />
-          ) : (
-            <ul className="parcel-list">
-              {lands.map((land) => (
-                <li key={land._id}>
-                  <Link to={`/land/${land._id}`}>
+              <p className="text-sm text-gray-500">
+                No incoming requests.
+              </p>
+
+            ) : (
+
+              <ul className="parcel-list">
+
+                {incomingRequests.map((req) => (
+
+                  <li key={req._id}>
+
                     <div className="parcel-item">
 
                       <div className="parcel-meta">
+
                         <span className="parcel-owner">
-                          {land.ownerId?.username || "Owner"}
+                          Buyer: {req.buyerId?.username}
                         </span>
 
                         <span className="parcel-caption">
-                          Owner • Tap to view details
+                          Buyer requesting contact access
                         </span>
+
                       </div>
 
-                      <span className="pill whitespace-nowrap">
-                        View details
-                      </span>
+                      <PrimaryButton
+                        type="button"
+                        onClick={() => approveRequest(req._id)}
+                      >
+                        Approve
+                      </PrimaryButton>
 
                     </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
 
-        </div>
+                  </li>
 
-        {/* Incoming Requests Card */}
-        <div className="card">
+                ))}
 
-          <div className="card-header">
-            <div>
-              <p className="section-eyebrow">Buyer activity</p>
-              <h2 className="card-title">Incoming requests</h2>
+              </ul>
 
-              <p className="card-subtitle">
-                Buyers requesting your contact details for land parcels.
-              </p>
-            </div>
+            )}
+
           </div>
 
-          {incomingRequests.length === 0 ? (
 
-            <p className="text-sm text-gray-500">
-              No incoming requests.
-            </p>
 
-          ) : (
+          {/* Land List Card */}
+          <div className="card">
 
-            <ul className="parcel-list">
-
-              {incomingRequests.map((req) => (
-
-                <li key={req._id}>
-
-                  <div className="parcel-item">
-
-                    <div className="parcel-meta">
-
-                      <span className="parcel-owner">
-                        Buyer: {req.buyerId?.username}
-                      </span>
-
-                      <span className="parcel-caption">
-                        Buyer requesting contact access
-                      </span>
-
-                    </div>
-
-                    <PrimaryButton
+            <div className="card-header">
+              <div>
+                <p className="section-eyebrow">Registry</p>
+                <h2 className="card-title">Land parcels</h2>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="search-bar mt-2">
+                    <input
+                      className="search-input"
+                      type="text"
+                      placeholder="Search owner name..."
+                      value={ownerSearchQuery}
+                      onChange={(e) => setOwnerSearchQuery(e.target.value)}
+                      onKeyUp={(e) => {
+                        if (e.key === "Enter") {
+                          handleOwnerSearch();
+                        }
+                      }}
+                    />
+                    <button
+                      className="search-button text-sm"
                       type="button"
-                      onClick={() => approveRequest(req._id)}
+                      onClick={handleOwnerSearch}
                     >
-                      Approve
-                    </PrimaryButton>
-
+                      Search
+                    </button>
                   </div>
+                </div>
+              </div>
+            </div>
 
-                </li>
+            {lands.length === 0 ? (
+              <div className="skeleton" />
+            ) : filteredLands.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                No land parcels match that owner name.
+              </p>
+            ) : (
+              <ul className="parcel-list">
+                {filteredLands.map((land) => (
+                  <li key={land._id}>
+                    <Link to={`/land/${land._id}`}>
+                      <div className="parcel-item">
 
-              ))}
+                        <div className="parcel-meta">
+                          <span className="parcel-owner">
+                            {land.ownerId?.username || "Owner"}
+                          </span>
 
-            </ul>
+                          <span className="parcel-caption">
+                            Owner • Tap to view details
+                          </span>
+                        </div>
 
-          )}
+                        <span className="pill whitespace-nowrap">
+                          View details
+                        </span>
 
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+          </div>
         </div>
-
       </section>
     </Layout>
   );

@@ -39,7 +39,7 @@ export default function SearchBar({ onLocationFound }) {
   };
 
   return (
-    <div className="search-bar mb-3">
+    <div className="search-bar text-sm">
       <input
         className="search-input"
         type="text"
@@ -53,7 +53,7 @@ export default function SearchBar({ onLocationFound }) {
           }
         }}
       />
-      <button className="search-button" type="button" onClick={searchLocation}>
+      <button className="search-button text-sm" type="button" onClick={searchLocation}>
         Search
       </button>
     </div>

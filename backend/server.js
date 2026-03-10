@@ -108,7 +108,7 @@ app.post("/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, email: user.email},
+      { id: user._id, email: user.email, username: user.username },
       SECRET,
       { expiresIn: "24h" }
     );
@@ -116,6 +116,7 @@ app.post("/login", async (req, res) => {
     res.json({
       message: "Login successful",
       token,
+      username: user.username,
     });
 
   } catch (err) {
@@ -138,6 +139,24 @@ app.post("/signup", async (req, res) => {
 
   } catch (err) {
     res.status(400).json({
+      error: err.message,
+    });
+  }
+});
+
+app.get("/me", authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("username email");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({
       error: err.message,
     });
   }
@@ -267,6 +286,12 @@ app.post("/request/approve", authenticateToken, async (req, res) => {
       });
     }
 
+    if (request.sellerId.toString() !== req.user.id) {
+      return res.status(403).json({
+        message: "You are not allowed to approve this request",
+      });
+    }
+
     request.status = "approved";
     await request.save();
 
@@ -305,6 +330,12 @@ app.get("/request/check/:landId", authenticateToken, async (req, res) => {
     }
 
     const land = await Land.findById(req.params.landId).populate("ownerId");
+
+    if (!land) {
+      return res.status(404).json({
+        message: "Land not found",
+      });
+    }
 
     res.json({
       approved: true,
