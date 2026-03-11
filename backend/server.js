@@ -419,4 +419,16 @@ main().catch((err) => console.log(err));
 
 async function main() {
   await mongoose.connect("mongodb://127.0.0.1:27017/Geo-Vision");
+  await syncLandIndexes();
+}
+
+async function syncLandIndexes() {
+  const landCollection = mongoose.connection.collection("lands");
+  const indexes = await landCollection.indexes();
+
+  if (indexes.some((index) => index.name === "aadhar_1")) {
+    await landCollection.dropIndex("aadhar_1");
+  }
+
+  await Land.syncIndexes();
 }

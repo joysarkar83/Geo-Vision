@@ -21,7 +21,8 @@ const landSchema = new Schema({
     pan: String,
     regNum: {
         type: String,
-        unique: true
+        unique: true,
+        sparse: true
     },
     coordinates: {
         type: [[Number]],
