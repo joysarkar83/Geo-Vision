@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { getLands, getMyRequests, approveRequest as apiApproveRequest } from "../api/api";
+import {
+  getLands,
+  getMyRequests,
+  approveRequest as apiApproveRequest,
+  rejectRequest as apiRejectRequest,
+} from "../api/api";
 import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
 import PrimaryButton from "../components/ui/PrimaryButton";
@@ -33,6 +38,12 @@ function Dashboard() {
 
   const approveRequest = async (id) => {
     await apiApproveRequest(id);
+    setIncomingRequests((prev) => prev.filter((r) => r._id !== id));
+  };
+
+  const rejectRequest = async (id) => {
+    const reason = window.prompt("Optional rejection reason:") || "";
+    await apiRejectRequest(id, reason);
     setIncomingRequests((prev) => prev.filter((r) => r._id !== id));
   };
 
@@ -119,12 +130,22 @@ function Dashboard() {
 
                       </div>
 
-                      <PrimaryButton
-                        type="button"
-                        onClick={() => approveRequest(req._id)}
-                      >
-                        Approve
-                      </PrimaryButton>
+                      <div className="flex gap-2">
+                        <PrimaryButton
+                          type="button"
+                          onClick={() => approveRequest(req._id)}
+                        >
+                          Approve
+                        </PrimaryButton>
+
+                        <button
+                          className="btn-ghost"
+                          type="button"
+                          onClick={() => rejectRequest(req._id)}
+                        >
+                          Reject
+                        </button>
+                      </div>
 
                     </div>
 

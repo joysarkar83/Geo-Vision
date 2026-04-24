@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../api/api";
-import { getUsername, isLoggedIn, logout } from "../utils/auth";
+import { getUserRole, getUsername, isLoggedIn, logout } from "../utils/auth";
 
 function Navbar() {
 
@@ -10,6 +10,7 @@ function Navbar() {
 
   const loggedIn = isLoggedIn();
   const username = loggedIn ? getUsername() : null;
+  const role = loggedIn ? getUserRole() : null;
   const [fetchedUsername, setFetchedUsername] = useState(null);
 
   useEffect(() => {
@@ -68,6 +69,34 @@ function Navbar() {
             }
           >
             Add Land
+          </NavLink>
+        )}
+
+        {loggedIn && (
+          <NavLink
+            to="/my-lands"
+            className={({ isActive: routeActive }) =>
+              `nav-link ${
+                routeActive || isActive("/my-lands") ? "nav-link-active" : ""
+              }`
+            }
+          >
+            My Lands
+          </NavLink>
+        )}
+
+        {loggedIn && (role === "admin" || role === "agent") && (
+          <NavLink
+            to="/admin/verification"
+            className={({ isActive: routeActive }) =>
+              `nav-link ${
+                routeActive || isActive("/admin/verification")
+                  ? "nav-link-active"
+                  : ""
+              }`
+            }
+          >
+            Verify Lands
           </NavLink>
         )}
 

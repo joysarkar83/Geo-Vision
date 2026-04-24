@@ -60,6 +60,86 @@ export async function getLand(id) {
   return res.json();
 }
 
+export async function getMyLands() {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/land/mine`, {
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  });
+
+  return res.json();
+}
+
+export async function updateLand(id, data) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/land/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    body: JSON.stringify(data),
+  });
+
+  return res.json();
+}
+
+export async function deleteLand(id) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/land/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  });
+
+  return res.json();
+}
+
+export async function getPendingLands() {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/land/pending`, {
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  });
+
+  return res.json();
+}
+
+export async function verifyLand(landId) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/land/${landId}/verify`, {
+    method: "PATCH",
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  });
+
+  return res.json();
+}
+
+export async function rejectLandVerification(landId, reason) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/land/${landId}/reject`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    body: JSON.stringify({ reason }),
+  });
+
+  return res.json();
+}
+
 /* ======================
    REQUESTS
 ====================== */
@@ -113,6 +193,21 @@ export async function approveRequest(requestId) {
       Authorization: "Bearer " + token,
     },
     body: JSON.stringify({ requestId }),
+  });
+
+  return res.json();
+}
+
+export async function rejectRequest(requestId, reason) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/request/reject`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    body: JSON.stringify({ requestId, reason }),
   });
 
   return res.json();

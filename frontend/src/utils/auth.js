@@ -69,6 +69,17 @@ export function getUserId() {
 
 }
 
+export function getUserRole() {
+
+  const token = getToken();
+  const payload = parseJwt(token);
+
+  if (!payload) return null;
+
+  return payload.role || "user";
+
+}
+
 export function logout() {
 
   if (typeof window === "undefined") return;

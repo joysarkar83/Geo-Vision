@@ -1,8 +1,17 @@
-import { MapContainer, TileLayer, Marker, Polygon, useMap, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Polygon,
+  useMap,
+  Popup,
+  LayersControl,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { getLands } from "../api/api";
 import * as turf from "@turf/turf";
 import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 function LocateUser({ setPosition }) {
   const map = useMap();
@@ -72,6 +81,7 @@ function MoveToLocation({ targetLocation }) {
 
 export default function MapView({ targetLocation }) {
 
+  const navigate = useNavigate();
   const [position, setPosition] = useState(null);
   const [lands, setLands] = useState([]);
   const [activeLand, setActiveLand] = useState(null);
@@ -119,10 +129,21 @@ export default function MapView({ targetLocation }) {
       style={{ height: "100%", width: "100%" }}
     >
 
-      <TileLayer
-        attribution="© OpenStreetMap contributors"
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      <LayersControl position="topright">
+        <LayersControl.BaseLayer checked name="OpenStreetMap">
+          <TileLayer
+            attribution="© OpenStreetMap contributors"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        </LayersControl.BaseLayer>
+
+        <LayersControl.BaseLayer name="Satellite">
+          <TileLayer
+            attribution="Tiles © Esri"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          />
+        </LayersControl.BaseLayer>
+      </LayersControl>
 
       <LocateUser setPosition={setPosition} />
 
@@ -148,7 +169,7 @@ export default function MapView({ targetLocation }) {
             }}
             eventHandlers={{
               click: () => {
-                // placeholder for click behavior
+                navigate(`/land/${land._id}`);
               }
             }}
           >
