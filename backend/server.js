@@ -18,6 +18,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const SECRET = process.env.JWT_SECRET;
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/Geo-Vision";
 
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
@@ -51,6 +52,30 @@ function authenticateToken(req, res, next) {
   }
 }
 
+async function requireAdmin(req, res, next) {
+  try {
+    const user = await User.findById(req.user.id).select("role");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    if (user.role !== "admin" && user.role !== "agent") {
+      return res.status(403).json({
+        message: "Admin access required",
+      });
+    }
+
+    next();
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
+}
+
 /* =========================
    LAND ROUTES
 ========================= */
@@ -60,6 +85,27 @@ app.get("/land", async (req, res) => {
     const lands = await Land.find({
       verificationStatus: 1,
     }).populate("ownerId", "username");
+
+    res.json(lands);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/land/mine", authenticateToken, async (req, res) => {
+  try {
+    const lands = await Land.find({ ownerId: req.user.id }).sort({ _id: -1 });
+    res.json(lands);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/land/pending", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const lands = await Land.find({ verificationStatus: 0 })
+      .populate("ownerId", "username email phone")
+      .sort({ _id: -1 });
 
     res.json(lands);
   } catch (err) {
@@ -80,6 +126,134 @@ app.get("/land/:id", async (req, res) => {
     res.json(land);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/land/:id", authenticateToken, async (req, res) => {
+  try {
+    const land = await Land.findById(req.params.id);
+
+    if (!land) {
+      return res.status(404).json({
+        message: "Land not found",
+      });
+    }
+
+    if (land.ownerId.toString() !== req.user.id) {
+      return res.status(403).json({
+        message: "You are not allowed to update this land",
+      });
+    }
+
+    const updatableFields = [
+      "fatherName",
+      "dob",
+      "address",
+      "landArea",
+      "pan",
+      "regNum",
+      "coordinates",
+      "landmark",
+      "propertyValue",
+      "sellingStatus",
+      "documents",
+      "driveFolder",
+    ];
+
+    for (const field of updatableFields) {
+      if (field in req.body) {
+        land[field] = req.body[field];
+      }
+    }
+
+    await land.save();
+
+    res.json({
+      message: "Land updated",
+      land,
+    });
+  } catch (err) {
+    res.status(400).json({
+      error: err.message,
+    });
+  }
+});
+
+app.delete("/land/:id", authenticateToken, async (req, res) => {
+  try {
+    const land = await Land.findById(req.params.id);
+
+    if (!land) {
+      return res.status(404).json({
+        message: "Land not found",
+      });
+    }
+
+    if (land.ownerId.toString() !== req.user.id) {
+      return res.status(403).json({
+        message: "You are not allowed to delete this land",
+      });
+    }
+
+    await land.deleteOne();
+
+    res.json({
+      message: "Land deleted",
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
+app.patch("/land/:id/verify", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const land = await Land.findById(req.params.id);
+
+    if (!land) {
+      return res.status(404).json({
+        message: "Land not found",
+      });
+    }
+
+    land.verificationStatus = 1;
+    land.verificationNote = "";
+    await land.save();
+
+    res.json({
+      message: "Land verified",
+      land,
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
+app.patch("/land/:id/reject", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const land = await Land.findById(req.params.id);
+
+    if (!land) {
+      return res.status(404).json({
+        message: "Land not found",
+      });
+    }
+
+    land.verificationStatus = 2;
+    land.verificationNote = req.body.reason || "Rejected during verification";
+    await land.save();
+
+    res.json({
+      message: "Land rejected",
+      land,
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
   }
 });
 
@@ -108,7 +282,7 @@ app.post("/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, email: user.email, username: user.username },
+      { id: user._id, email: user.email, username: user.username, role: user.role },
       SECRET,
       { expiresIn: "24h" }
     );
@@ -117,6 +291,7 @@ app.post("/login", async (req, res) => {
       message: "Login successful",
       token,
       username: user.username,
+      role: user.role,
     });
 
   } catch (err) {
@@ -129,7 +304,11 @@ app.post("/login", async (req, res) => {
 app.post("/signup", async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    const user = new User({ ...req.body, password: hashedPassword });
+    const user = new User({
+      ...req.body,
+      role: "user",
+      password: hashedPassword,
+    });
 
     await user.save();
 
@@ -146,7 +325,7 @@ app.post("/signup", async (req, res) => {
 
 app.get("/me", authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("username email");
+    const user = await User.findById(req.user.id).select("username email role");
 
     if (!user) {
       return res.status(404).json({
@@ -307,6 +486,42 @@ app.post("/request/approve", authenticateToken, async (req, res) => {
 
 });
 
+app.post("/request/reject", authenticateToken, async (req, res) => {
+
+  try {
+
+    const { requestId, reason } = req.body;
+
+    const request = await Request.findById(requestId);
+
+    if (!request) {
+      return res.status(404).json({
+        message: "Request not found",
+      });
+    }
+
+    if (request.sellerId.toString() !== req.user.id) {
+      return res.status(403).json({
+        message: "You are not allowed to reject this request",
+      });
+    }
+
+    request.status = "rejected";
+    request.rejectionReason = reason || "Request rejected by seller";
+    await request.save();
+
+    res.json({
+      message: "Request rejected",
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+
+});
+
 /* =========================
    CHECK REQUEST STATUS
 ========================= */
@@ -418,7 +633,7 @@ app.listen(PORT, () => {
 main().catch((err) => console.log(err));
 
 async function main() {
-  await mongoose.connect("mongodb://127.0.0.1:27017/Geo-Vision");
+  await mongoose.connect(MONGO_URI);
   await syncLandIndexes();
 }
 

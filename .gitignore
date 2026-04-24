@@ -25,4 +25,5 @@ dist-ssr
 .env
 
 credentials.json
+.vscode
 package-lock.json

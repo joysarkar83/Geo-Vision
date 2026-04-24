@@ -25,6 +25,11 @@ const requestSchema = new Schema({
     default: "pending"
   },
 
+  rejectionReason: {
+    type: String,
+    default: ""
+  },
+
   createdAt: {
     type: Date,
     default: Date.now

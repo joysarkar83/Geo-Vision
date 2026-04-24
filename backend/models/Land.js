@@ -4,6 +4,7 @@ import { model, Schema } from 'mongoose';
 // 11: Not for sale
 // 0: Pending verification
 // 1: Verified
+// 2: Rejected
 
 const landSchema = new Schema({
     ownerId: {
@@ -39,7 +40,8 @@ const landSchema = new Schema({
     verificationStatus: {
         type: Number,
         default: 0
-    }
+    },
+    verificationNote: String
 });
 
 export default model("Land", landSchema);
