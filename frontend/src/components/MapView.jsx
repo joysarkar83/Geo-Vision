@@ -1,116 +1,122 @@
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Polygon,
-  useMap,
-  Popup,
-  LayersControl,
-} from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import { getLands } from "../api/api";
-import * as turf from "@turf/turf";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+import * as turf from "@turf/turf";
+import { getLands } from "../api/api";
 
-function LocateUser({ setPosition }) {
-  const map = useMap();
-
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!navigator.geolocation) {
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    navigator.geolocation.getCurrentPosition((pos) => {
-      if (cancelled) return;
-
-      const coords = [
-        pos.coords.latitude,
-        pos.coords.longitude
-      ];
-
-      setPosition(coords);
-      map.whenReady(() => {
-        if (!cancelled) {
-          map.setView(coords, 18);
-        }
-      });
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [setPosition, map]);
-
-  return null;
-}
-
-function RecenterButton({ position }) {
-  const map = useMap();
-
-  if (!position) return null;
-
-  return (
-    <button
-      onClick={() => map.setView(position, 18)}
-      className="map-recenter-button"
-    >
-      <div className="py-3 px-3">📍</div>
-    </button>
-  );
-}
-
-/* NEW: move map when search result arrives */
-function MoveToLocation({ targetLocation }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (Array.isArray(targetLocation) && targetLocation.length === 2) {
-      map.whenReady(() => {
-        map.setView(targetLocation, 14);
-      });
-    }
-  }, [targetLocation, map]);
-
-  return null;
-}
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 export default function MapView({ targetLocation }) {
-
   const navigate = useNavigate();
+
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markersRef = useRef([]);
+  const userMarkerRef = useRef(null); // ✅ inside component
+
   const [position, setPosition] = useState(null);
   const [lands, setLands] = useState([]);
   const [activeLand, setActiveLand] = useState(null);
 
-  // Fetch land parcels
+  // Create map
+  useEffect(() => {
+    if (mapRef.current) return;
+
+    mapRef.current = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: "mapbox://styles/mapbox/satellite-streets-v12",
+      center: [78.9629, 20.5937],
+      zoom: 5,
+    });
+
+    mapRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+
+    return () => mapRef.current?.remove();
+  }, []);
+
+  // Fetch lands
   useEffect(() => {
     getLands()
       .then((data) => setLands(Array.isArray(data) ? data : []))
       .catch((err) => {
-        console.error("Failed to fetch lands:", err);
+        console.error(err);
         setLands([]);
       });
   }, []);
 
-  // Compute active land
+  // Current location
+  useEffect(() => {
+    if (!navigator.geolocation || !mapRef.current) return;
+
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const coords = [
+        pos.coords.longitude,
+        pos.coords.latitude,
+      ];
+
+      setPosition([pos.coords.latitude, pos.coords.longitude]);
+
+      userMarkerRef.current = new mapboxgl.Marker({
+        color: "red",
+      })
+        .setLngLat(coords)
+        .addTo(mapRef.current);
+
+      mapRef.current.flyTo({
+        center: coords,
+        zoom: 18,
+      });
+    });
+  }, []);
+
+  // Search location move + marker move
+  useEffect(() => {
+    if (
+      targetLocation &&
+      Array.isArray(targetLocation) &&
+      targetLocation.length === 2 &&
+      mapRef.current
+    ) {
+      const coords = [
+        targetLocation[1],
+        targetLocation[0],
+      ];
+
+      mapRef.current.flyTo({
+        center: coords,
+        zoom: 14,
+      });
+
+      if (userMarkerRef.current) {
+        userMarkerRef.current.setLngLat(coords);
+      } else {
+        userMarkerRef.current = new mapboxgl.Marker({
+          color: "red",
+        })
+          .setLngLat(coords)
+          .addTo(mapRef.current);
+      }
+    }
+  }, [targetLocation]);
+
+  // Detect active land
   const computedActiveLand = useMemo(() => {
     if (!position || lands.length === 0) return null;
 
     const point = turf.point([position[1], position[0]]);
 
     for (let land of lands) {
+      const coords = land.coordinates.map((c) => [
+        c[1],
+        c[0],
+      ]);
 
-      const swappedCoords = land.coordinates.map(c => [c[1], c[0]]); // DB [lat, lng] -> [lng, lat] for Turf
-      const closedCoords = [...swappedCoords, swappedCoords[0]]; // Close the polygon
-      const polygon = turf.polygon([closedCoords]);
+      const polygon = turf.polygon([
+        [...coords, coords[0]],
+      ]);
 
-      const inside = turf.booleanPointInPolygon(point, polygon);
-
-      if (inside) {
+      if (turf.booleanPointInPolygon(point, polygon)) {
         return land._id;
       }
     }
@@ -122,69 +128,96 @@ export default function MapView({ targetLocation }) {
     setActiveLand(computedActiveLand);
   }, [computedActiveLand]);
 
+  // Draw land polygons
+  useEffect(() => {
+    if (!mapRef.current || lands.length === 0) return;
+
+    const map = mapRef.current;
+
+    const draw = () => {
+      markersRef.current.forEach((m) => m.remove());
+      markersRef.current = [];
+
+      lands.forEach((land) => {
+        const sourceId = `source-${land._id}`;
+        const layerId = `layer-${land._id}`;
+
+        const coords = land.coordinates.map((c) => [
+          c[1],
+          c[0],
+        ]);
+
+        const closed = [...coords, coords[0]];
+
+        if (map.getLayer(layerId)) map.removeLayer(layerId);
+        if (map.getSource(sourceId)) map.removeSource(sourceId);
+
+        map.addSource(sourceId, {
+          type: "geojson",
+          data: {
+            type: "Feature",
+            geometry: {
+              type: "Polygon",
+              coordinates: [closed],
+            },
+          },
+        });
+
+        map.addLayer({
+          id: layerId,
+          type: "fill",
+          source: sourceId,
+          paint: {
+            "fill-color":
+              activeLand === land._id
+                ? "#ff0000"
+                : "#0066ff",
+            "fill-opacity": 0.45,
+          },
+        });
+
+        map.on("click", layerId, () => {
+          navigate(`/land/${land._id}`);
+        });
+
+        const popup = new mapboxgl.Popup().setHTML(`
+          <div>
+            <strong>Owner:</strong> ${
+              land.ownerId?.username || "N/A"
+            }<br/>
+            <strong>Father:</strong> ${
+              land.fatherName || "N/A"
+            }<br/>
+            <strong>Status:</strong> ${
+              land.sellingStatus === 10
+                ? "On Sale"
+                : "Not for Sale"
+            }
+          </div>
+        `);
+
+        const marker = new mapboxgl.Marker({
+          color: "blue",
+        })
+          .setLngLat(coords[0])
+          .setPopup(popup)
+          .addTo(map);
+
+        markersRef.current.push(marker);
+      });
+    };
+
+    if (map.isStyleLoaded()) draw();
+    else map.on("load", draw);
+  }, [lands, activeLand, navigate]);
+
   return (
-    <MapContainer
-      center={[20.5937, 78.9629]}
-      zoom={5}
-      style={{ height: "100%", width: "100%" }}
-    >
-
-      <LayersControl position="topright">
-        <LayersControl.BaseLayer checked name="OpenStreetMap">
-          <TileLayer
-            attribution="© OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-        </LayersControl.BaseLayer>
-
-        <LayersControl.BaseLayer name="Satellite">
-          <TileLayer
-            attribution="Tiles © Esri"
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-          />
-        </LayersControl.BaseLayer>
-      </LayersControl>
-
-      <LocateUser setPosition={setPosition} />
-
-      <RecenterButton position={position} />
-
-      {/* NEW: reacts to search */}
-      <MoveToLocation targetLocation={targetLocation} />
-
-      {position && <Marker position={position} />}
-
-      {lands.map((land) => {
-
-        const coords = land.coordinates; // DB is [lat, lng], Leaflet expects [lat, lng]
-        const isActive = activeLand === land._id;
-
-        return (
-          <Polygon
-            key={land._id}
-            positions={coords}
-            pathOptions={{
-              color: isActive ? "red" : "blue",
-              weight: 2
-            }}
-            eventHandlers={{
-              click: () => {
-                navigate(`/land/${land._id}`);
-              }
-            }}
-          >
-            <Popup>
-              <div>
-                <strong>Owner:</strong> {land.ownerId?.username}<br/>
-                <strong>Father:</strong> {land.fatherName}<br/>
-                <strong>Status:</strong> {land.sellingStatus === 10 ? "On Sale" : "Not for Sale"}
-              </div>
-            </Popup>
-          </Polygon>
-        );
-
-      })}
-
-    </MapContainer>
+    <div
+      ref={mapContainerRef}
+      style={{
+        width: "100%",
+        height: "100%",
+      }}
+    />
   );
 }
