@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { addLand, uploadDocs } from "../api/api";
 import Layout from "../components/Layout";
@@ -6,8 +6,15 @@ import TextField from "../components/ui/TextField";
 import PrimaryButton from "../components/ui/PrimaryButton";
 import { isLoggedIn } from "../utils/auth";
 
+import mapboxgl from "mapbox-gl";
+import MapboxDraw from "@mapbox/mapbox-gl-draw";
+import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+
 function AddLand() {
   const navigate = useNavigate();
+
+  const mapContainer = useRef(null);
+  const map = useRef(null);
 
   const [form, setForm] = useState({
     fatherName: "",
@@ -23,34 +30,73 @@ function AddLand() {
     files: [],
   });
 
+  // Login check
   useEffect(() => {
     if (!isLoggedIn()) {
       navigate("/login");
     }
   }, [navigate]);
 
+  // Map Initialization
+  useEffect(() => {
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+    if (map.current) return;
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: "mapbox://styles/mapbox/satellite-streets-v12",
+      center: [81.76137, 21.13016],
+      zoom: 14,
+    });
+
+    const draw = new MapboxDraw({
+      displayControlsDefault: false,
+      controls: {
+        polygon: true,
+        trash: true,
+      },
+    });
+
+    map.current.addControl(draw);
+
+    map.current.on("draw.create", updateArea);
+    map.current.on("draw.update", updateArea);
+
+    function updateArea() {
+      const data = draw.getAll();
+
+      if (data.features.length > 0) {
+        const coords =
+          data.features[0].geometry.coordinates[0];
+
+        // Convert [lng, lat] → [lat, lng]
+        const formatted = coords.map((coord) => [
+          coord[1],
+          coord[0],
+        ]);
+
+        setForm((prev) => ({
+          ...prev,
+          coordinates: JSON.stringify(formatted),
+        }));
+      }
+    }
+  }, []);
+
+  // Submit Land
   const handleSubmit = async () => {
-    const coordinates = form.coordinates
-      .split(";")
-      .map((point) => point.trim())
-      .filter((point) => point.length > 0)
-      .map((point) => point.split(",").map((value) => Number(value.trim())));
-
-    const hasInvalidCoordinates =
-      coordinates.length === 0 ||
-      coordinates.some(
-        (point) =>
-          point.length !== 2 || point.some((value) => Number.isNaN(value))
-      );
-
-    if (hasInvalidCoordinates) {
-      alert("Enter coordinates as latitude,longitude pairs separated by semicolons.");
+    if (!form.coordinates) {
+      alert("Please draw a land parcel on map.");
       return;
     }
+
+    const coordinates = JSON.parse(form.coordinates);
 
     let folderId = null;
     let uploadedFiles = [];
 
+    // Upload docs
     if (form.files.length > 0) {
       const uploadResult = await uploadDocs(form.files);
 
@@ -113,11 +159,14 @@ function AddLand() {
 
           <div className="field">
             <label className="field-label">Date of birth</label>
+
             <input
               className="field-input"
               type="date"
               value={form.dob}
-              onChange={(e) => setForm({ ...form, dob: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, dob: e.target.value })
+              }
             />
           </div>
 
@@ -133,10 +182,13 @@ function AddLand() {
           <TextField
             label="Land area (Acres)"
             type="number"
-            placeholder="Land Area (Acres)"
+            placeholder="Land Area"
             value={form.landArea}
             onChange={(e) =>
-              setForm({ ...form, landArea: Number(e.target.value) })
+              setForm({
+                ...form,
+                landArea: Number(e.target.value),
+              })
             }
           />
 
@@ -161,7 +213,7 @@ function AddLand() {
           <TextField
             label="Property value (Lakhs)"
             type="number"
-            placeholder="Property Value (Lakhs)"
+            placeholder="Property Value"
             value={form.propertyValue}
             onChange={(e) =>
               setForm({
@@ -183,8 +235,10 @@ function AddLand() {
             }
           />
 
+          {/* STATUS */}
           <div className="field">
             <label className="field-label">Status</label>
+
             <div className="radio-group">
 
               <label className="radio-label">
@@ -194,7 +248,10 @@ function AddLand() {
                   value={10}
                   checked={form.status === 10}
                   onChange={(e) =>
-                    setForm({ ...form, status: Number(e.target.value) })
+                    setForm({
+                      ...form,
+                      status: Number(e.target.value),
+                    })
                   }
                 />
                 <span>On Sale</span>
@@ -207,7 +264,10 @@ function AddLand() {
                   value={11}
                   checked={form.status === 11}
                   onChange={(e) =>
-                    setForm({ ...form, status: Number(e.target.value) })
+                    setForm({
+                      ...form,
+                      status: Number(e.target.value),
+                    })
                   }
                 />
                 <span>Not for Sale</span>
@@ -218,39 +278,62 @@ function AddLand() {
 
         </div>
 
-        <TextField
-          label="Coordinates"
-          placeholder="Coordinates (example: 21.13016,81.76137; 21.12860,81.76071;)"
-          value={form.coordinates}
-          onChange={(e) =>
-            setForm({ ...form, coordinates: e.target.value })
-          }
-          caption="Semicolon-separated points, each comma-separated latitude and longitude"
-        />
+        {/* MAP DRAWING */}
+        <div className="field mt-4">
+          <label className="field-label">
+            Draw Land Parcel
+          </label>
 
+          <div
+            ref={mapContainer}
+            style={{
+              width: "100%",
+              height: "500px",
+              borderRadius: "12px",
+              overflow: "hidden",
+            }}
+          />
+
+          <p className="field-caption">
+            Use polygon tool to draw land parcel.
+          </p>
+        </div>
+
+        {/* DOCUMENTS */}
         <div className="field mt-4">
           <label className="field-label">Documents</label>
+
           <input
             type="file"
             multiple
             className="field-input"
             onChange={(e) =>
-              setForm({ ...form, files: Array.from(e.target.files) })
+              setForm({
+                ...form,
+                files: Array.from(e.target.files),
+              })
             }
           />
+
           <p className="field-caption">
-            Upload supporting documents (PDF, images, etc.)
+            Upload supporting documents.
           </p>
         </div>
 
+        {/* SUBMIT */}
         <div className="form-footer">
-          <PrimaryButton type="button" onClick={handleSubmit}>
+
+          <PrimaryButton
+            type="button"
+            onClick={handleSubmit}
+          >
             Submit
           </PrimaryButton>
 
           <span className="form-meta">
-            Coordinates are parsed as semicolon-separated points into an array of [lat, lng] pairs.
+            Parcel coordinates are generated automatically from the map.
           </span>
+
         </div>
 
       </section>
