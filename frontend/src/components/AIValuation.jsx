@@ -173,9 +173,9 @@ function AIValuation({ verificationReport }) {
         </div>
 
         {/* Recommendation */}
-        <div className="recommendation-section">
+        <div className={`recommendation-section ${status.toLowerCase()}`}>
           <h4>💡 Recommendation</h4>
-          <div className={`recommendation ${status.toLowerCase()}`}>
+          <div className="recommendation">
             {status === "APPROVED" && (
               <p>This land listing is verified and ready for the marketplace. Proceed with listing approval.</p>
             )}

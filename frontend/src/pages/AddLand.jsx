@@ -12,6 +12,7 @@ import TextField from "../components/ui/TextField";
 import PrimaryButton from "../components/ui/PrimaryButton";
 import DocumentAnalyzer from "../components/DocumentAnalyzer";
 import AIValuation from "../components/AIValuation";
+import MapDraw from "../components/MapDraw";
 
 import { isLoggedIn } from "../utils/auth";
 
@@ -373,17 +374,14 @@ function AddLand() {
         </div>
 
         {/* Coordinates */}
-        <TextField
-          label="Coordinates"
-          placeholder="21.1280,81.7754; 21.1290,81.7760"
+        <MapDraw
           value={form.coordinates}
-          onChange={(e) =>
+          onChange={(val) =>
             setForm({
               ...form,
-              coordinates: e.target.value,
+              coordinates: val,
             })
           }
-          caption="Use semicolon-separated latitude,longitude pairs"
         />
 
         {/* Documents */}

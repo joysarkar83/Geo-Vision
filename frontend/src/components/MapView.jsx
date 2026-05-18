@@ -117,6 +117,8 @@ export default function MapView({ targetLocation }) {
         c[0],
       ]);
 
+      if (coords.length < 3) continue;
+
       const polygon = turf.polygon([
         [...coords, coords[0]],
       ]);
@@ -151,6 +153,8 @@ export default function MapView({ targetLocation }) {
           c[1],
           c[0],
         ]);
+
+        if (coords.length < 3) return;
 
         const closed = [...coords, coords[0]];
 
@@ -217,12 +221,53 @@ export default function MapView({ targetLocation }) {
   }, [lands, activeLand, navigate]);
 
   return (
-    <div
-      ref={mapContainerRef}
-      style={{
-        width: "100%",
-        height: "100%",
-      }}
-    />
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      <div
+        ref={mapContainerRef}
+        style={{
+          width: "100%",
+          height: "100%",
+        }}
+      />
+      <button
+        onClick={() => {
+          if (mapRef.current) {
+            if (position) {
+              mapRef.current.flyTo({ center: [position[1], position[0]], zoom: 18 });
+            } else {
+              mapRef.current.flyTo({ center: [78.9629, 20.5937], zoom: 5 });
+            }
+          }
+        }}
+        style={{
+          position: "absolute",
+          bottom: "24px",
+          right: "24px",
+          zIndex: 10,
+          padding: "10px 18px",
+          background: "linear-gradient(135deg, var(--accent-gold), var(--accent-gold-soft))",
+          color: "#0a0a0a",
+          border: "none",
+          borderRadius: "999px",
+          fontWeight: 600,
+          fontSize: "12px",
+          textTransform: "uppercase",
+          letterSpacing: "0.12em",
+          cursor: "pointer",
+          boxShadow: "0 4px 14px rgba(0, 0, 0, 0.3)",
+          transition: "transform 0.16s ease, box-shadow 0.16s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-1px)";
+          e.currentTarget.style.boxShadow = "0 14px 40px rgba(201, 169, 110, 0.3)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "0 4px 14px rgba(0, 0, 0, 0.3)";
+        }}
+      >
+        Recenter
+      </button>
+    </div>
   );
 }
