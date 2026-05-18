@@ -1,0 +1,265 @@
+/* AI Valuation Styles */
+.ai-valuation {
+  width: 100%;
+  margin: 20px 0;
+}
+
+.ai-valuation .card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.valuation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.valuation-header h3 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  color: #1f2937;
+}
+
+.status-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.status-badge.approved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.approved_with_review {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.needs_review {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+.status-badge.rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Score Section */
+.score-section {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border-radius: 12px;
+  margin-bottom: 32px;
+}
+
+.circular-score {
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.score-circle {
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 12px;
+}
+
+.score-text {
+  font-size: 48px;
+  font-weight: 700;
+}
+
+.score-label {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+  margin: 0;
+}
+
+.score-details {
+  flex: 1;
+}
+
+.score-description {
+  margin: 0;
+  font-size: 15px;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+/* Checks Section */
+.checks-section {
+  margin-bottom: 32px;
+}
+
+.checks-section h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 16px;
+}
+
+.check-item {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.check-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.check-icon {
+  font-size: 20px;
+}
+
+.check-title {
+  flex: 1;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.check-score {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.check-details {
+  padding: 16px;
+}
+
+.check-details p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.check-details p:last-child {
+  margin-bottom: 0;
+}
+
+.check-details .pass {
+  color: #16a34a;
+}
+
+.check-details .fail {
+  color: #dc2626;
+}
+
+.check-details .warning {
+  color: #d97706;
+}
+
+.check-details .detail {
+  color: #6b7280;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.check-details .badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.check-details .badge.low {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.check-details .badge.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.check-details .badge.high {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Recommendation Section */
+.recommendation-section {
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 10px;
+  border-left: 4px solid #3b82f6;
+}
+
+.recommendation-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.recommendation {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+.recommendation.approved {
+  border-left-color: #22c55e;
+}
+
+.recommendation.approved_with_review {
+  border-left-color: #f59e0b;
+}
+
+.recommendation.needs_review {
+  border-left-color: #ec4899;
+}
+
+.recommendation.rejected {
+  border-left-color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .valuation-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .score-section {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .circular-score {
+    margin-bottom: 0;
+  }
+
+  .check-header {
+    flex-wrap: wrap;
+  }
+
+  .check-score {
+    width: 100%;
+    margin-top: 8px;
+  }
+}

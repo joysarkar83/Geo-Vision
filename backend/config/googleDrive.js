@@ -1,19 +1,41 @@
 import { google } from "googleapis";
 import fs from "fs";
+import path from "path";
 
-const auth = new google.auth.GoogleAuth({
-    keyFile: "credentials.json",
-    scopes: ["https://www.googleapis.com/auth/drive"]
-});
+let drive = null;
+let driveInitialized = false;
 
-const drive = google.drive({
-    version: "v3",
-    auth
-});
+// Try to initialize Google Drive
+try {
+    const credentialsPath = "credentials.json";
+    if (fs.existsSync(credentialsPath)) {
+        const auth = new google.auth.GoogleAuth({
+            keyFile: credentialsPath,
+            scopes: ["https://www.googleapis.com/auth/drive"]
+        });
+
+        drive = google.drive({
+            version: "v3",
+            auth
+        });
+        driveInitialized = true;
+        console.log("✅ Google Drive initialized successfully");
+    } else {
+        console.warn("⚠️  credentials.json not found - Google Drive upload disabled");
+        driveInitialized = false;
+    }
+} catch (error) {
+    console.warn("⚠️  Failed to initialize Google Drive:", error.message);
+    driveInitialized = false;
+}
 
 const ROOT_FOLDER = "1HKW0fjKdcHpepYcfawdor8KqPwUdxqKw";
 
 export async function createSubmissionFolder() {
+    if (!driveInitialized) {
+        // Return a mock folder ID for testing without Google Drive
+        return `mock_folder_${Date.now()}`;
+    }
 
     const folderName = `Land_${Date.now()}`;
 
@@ -29,6 +51,10 @@ export async function createSubmissionFolder() {
 }
 
 export async function uploadFile(file, folderId) {
+    if (!driveInitialized) {
+        // Return a mock file ID for testing without Google Drive
+        return `mock_file_${Date.now()}_${file.originalname}`;
+    }
 
     const response = await drive.files.create({
         requestBody: {

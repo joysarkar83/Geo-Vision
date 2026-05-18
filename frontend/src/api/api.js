@@ -251,3 +251,111 @@ export async function uploadDocs(files) {
 
   return res.json();
 }
+
+/* ======================
+   AI SERVICES
+====================== */
+
+export async function extractDocumentData(file) {
+  const formData = new FormData();
+  formData.append("document", file);
+
+  const res = await fetch(`${API}/ai/extract-document`, {
+    method: "POST",
+    body: formData,
+  });
+
+  return res.json();
+}
+
+export async function verifyDocumentAuthenticity(file, docType = "land_deed") {
+  const formData = new FormData();
+  formData.append("document", file);
+  formData.append("docType", docType);
+
+  const res = await fetch(`${API}/ai/verify-document`, {
+    method: "POST",
+    body: formData,
+  });
+
+  return res.json();
+}
+
+export async function analyzeLandAI(landData, documentsExtracted = {}) {
+  const res = await fetch(`${API}/ai/analyze-land`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      landData,
+      documentsExtracted,
+    }),
+  });
+
+  return res.json();
+}
+
+export async function checkDuplicateListing(currentLand, similarLands = []) {
+  const res = await fetch(`${API}/ai/check-duplicate`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      currentLand,
+      similarLands,
+    }),
+  });
+
+  return res.json();
+}
+
+export async function verifyLandCoordinates(coordinates, landmark = "", address = "") {
+  const res = await fetch(`${API}/ai/verify-coordinates`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      coordinates,
+      landmark,
+      address,
+    }),
+  });
+
+  return res.json();
+}
+
+export async function performFullLandVerification(landData, documentsExtracted = {}, similarLands = []) {
+  const res = await fetch(`${API}/ai/full-verification`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      landData,
+      documentsExtracted,
+      similarLands,
+    }),
+  });
+
+  return res.json();
+}
+
+export async function chatWithAI(messages) {
+  const res = await fetch(`${API}/ai/chat`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ messages }),
+  });
+
+  return res.json();
+}
+
+export async function checkAIServiceStatus() {
+  const res = await fetch(`${API}/ai/health`);
+  return res.json();
+}

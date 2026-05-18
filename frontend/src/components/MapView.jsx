@@ -57,11 +57,16 @@ export default function MapView({ targetLocation }) {
 
       setPosition([pos.coords.latitude, pos.coords.longitude]);
 
-      userMarkerRef.current = new mapboxgl.Marker({
-        color: "red",
-      })
-        .setLngLat(coords)
-        .addTo(mapRef.current);
+      if (!mapRef.current) return;
+      try {
+        userMarkerRef.current = new mapboxgl.Marker({
+          color: "red",
+        })
+          .setLngLat(coords)
+          .addTo(mapRef.current);
+      } catch (err) {
+        console.warn("Marker add error:", err);
+      }
 
       mapRef.current.flyTo({
         center: coords,

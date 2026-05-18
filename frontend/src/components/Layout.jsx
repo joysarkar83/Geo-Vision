@@ -1,4 +1,5 @@
 import Navbar from "./Navbar";
+import Chatbot from "./Chatbot";
 
 function Layout({ children }) {
   return (
@@ -9,6 +10,7 @@ function Layout({ children }) {
       <div className="app-shell">
         <Navbar />
         <main className="app-main">{children}</main>
+        <Chatbot />
       </div>
     </div>
   );

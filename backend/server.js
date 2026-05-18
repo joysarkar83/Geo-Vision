@@ -8,6 +8,8 @@ import fs from "fs";
 import bcrypt from "bcrypt";
 
 import { createSubmissionFolder, uploadFile } from "./config/googleDrive.js";
+import { validateAIConfig } from "./config/aiConfig.js";
+import aiRoutes from "./routes/ai.js";
 
 import User from "./models/User.js";
 import Land from "./models/Land.js";
@@ -23,6 +25,9 @@ const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/Geo-Vision
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Validate AI configuration
+validateAIConfig();
 
 const upload = multer({ dest: "uploads/" });
 
@@ -607,6 +612,12 @@ app.post(
 
   }
 );
+
+/* =========================
+   AI ROUTES
+========================= */
+
+app.use("/ai", aiRoutes);
 
 /* =========================
    FALLBACK
